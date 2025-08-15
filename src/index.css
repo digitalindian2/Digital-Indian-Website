@@ -1,0 +1,36 @@
+/* src/index.css */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.logo-carousel-container {
+  overflow: hidden;
+  width: 100%;
+  white-space: nowrap;
+}
+
+.logo-carousel {
+  display: inline-block;
+  animation: scroll-left 40s linear infinite;
+}
+
+.logo-carousel:hover {
+  animation-play-state: paused;
+}
+
+.logo-carousel img {
+  height: 64px;
+  width: auto;
+  margin: 0 24px; /* Updated margin for better alignment with the header */
+  display: inline-block;
+}
