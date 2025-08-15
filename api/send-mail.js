@@ -19,54 +19,36 @@ const parseForm = (req) => {
     const bb = busboy({ headers: req.headers });
     const fields = {};
     const files = {};
-    const buffers = [];
 
-    // Collect the entire request body into a buffer first
-    req.on('data', (chunk) => {
-      buffers.push(chunk);
+    // Pipe the request to busboy immediately
+    req.pipe(bb);
+
+    bb.on('file', (fieldname, file, filename, encoding, mimetype) => {
+      const buffers = [];
+      file.on('data', (data) => {
+        buffers.push(data);
+      });
+      file.on('end', () => {
+        if (buffers.length > 0) {
+          files[fieldname] = {
+            filename: filename.filename,
+            content: Buffer.concat(buffers),
+            contentType: mimetype
+          };
+        }
+      });
     });
 
-    req.on('end', () => {
-      const fullBody = Buffer.concat(buffers);
-      const bbInstance = busboy({ headers: req.headers });
-
-      bbInstance.on('file', (fieldname, file, filename, encoding, mimetype) => {
-        const fileBuffers = [];
-        file.on('data', (data) => {
-          fileBuffers.push(data);
-        });
-        file.on('end', () => {
-          if (fileBuffers.length > 0) {
-            files[fieldname] = {
-              filename: filename.filename,
-              content: Buffer.concat(fileBuffers),
-              contentType: mimetype
-            };
-          }
-        });
-      });
-
-      bbInstance.on('field', (fieldname, val) => {
-        fields[fieldname] = val;
-      });
-
-      bbInstance.on('finish', () => {
-        resolve({ fields, files });
-      });
-
-      bbInstance.on('error', (err) => {
-        console.error('Busboy error:', err);
-        reject(err);
-      });
-      
-      // Now, pipe the full body buffer to the busboy instance
-      const bufferStream = new PassThrough();
-      bufferStream.end(fullBody);
-      bufferStream.pipe(bbInstance);
+    bb.on('field', (fieldname, val) => {
+      fields[fieldname] = val;
     });
 
-    req.on('error', (err) => {
-      console.error('Request stream error:', err);
+    bb.on('finish', () => {
+      resolve({ fields, files });
+    });
+
+    bb.on('error', (err) => {
+      console.error('Busboy error:', err);
       reject(err);
     });
   });
@@ -110,8 +92,9 @@ const handler = async (req, res) => {
       });
 
       const mailOptions = {
-        from: email,
-        to: process.env.NODEMAILER_EMAIL,
+        from: process.env.NODEMAILER_EMAIL,
+        to: "ankurr.era@gmail.com",
+        replyTo: email,
         subject: `New Contact Form Submission from ${name}`,
         html: `
           <p><strong>Name:</strong> ${name}</p>
