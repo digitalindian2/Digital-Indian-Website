@@ -4,7 +4,7 @@ import { MapPin, Phone, Mail, Clock, Send, CheckCircle, XCircle, Loader2, Upload
 // import { useLocation } from 'react-router-dom';
 
 // The image is now referenced from the public directory.
-const thumbnailMap = '/thumbnail_map.jpg';
+const thumbnailMap = '../assets/thumbnail_map.jpg';
 
 const Contact = () => {
     // The useLocation hook is no longer used, so we remove the variable declaration.
