@@ -1,4 +1,14 @@
 {
+  "rewrites": [
+    {
+      "source": "/api/token",
+      "destination": "/api/token.js"
+    },
+    {
+      "source": "/api/send-mail",
+      "destination": "/api/send-mail.js"
+    }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",
