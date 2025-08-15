@@ -1,17 +1,23 @@
-// api/generate-token.js
-import crypto from "crypto";
+import { v4 as uuidv4 } from 'uuid';
+import dotenv from 'dotenv';
+
+// Load environment variables from .env.local file if not in production
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({ path: '.env.local' });
+}
 
 export default function handler(req, res) {
-  if (req.method !== "GET") {
-    res.setHeader("Allow", ["GET"]);
-    return res.status(405).json({ error: "Method Not Allowed" });
-  }
+  // Set CORS headers for all methods, including the preflight OPTIONS request
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  try {
-    const token = crypto.randomUUID();
-    return res.status(200).json({ token });
-  } catch (err) {
-    console.error("Error generating token:", err);
-    return res.status(500).json({ error: "Internal Server Error" });
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
   }
+  
+  const token = uuidv4();
+  res.status(200).json({ token });
 }

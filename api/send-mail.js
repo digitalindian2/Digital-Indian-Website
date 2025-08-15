@@ -1,109 +1,108 @@
 import nodemailer from "nodemailer";
-import formidable from "formidable";
-import fs from "fs";
+import busboy from "busboy";
+import dotenv from "dotenv";
+
+// Load environment variables in development
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config({ path: ".env.local" });
+}
 
 export const config = {
-  api: {
-    bodyParser: false, // Required for formidable
-  },
+  api: { bodyParser: false }, // Disable Next.js body parsing so Busboy can handle streams
+};
+
+// ✅ Safe Busboy parser
+const parseForm = (req) => {
+  return new Promise((resolve, reject) => {
+    const bb = busboy({ headers: req.headers });
+    const fields = {};
+    const files = [];
+
+    // Handle file uploads
+    bb.on("file", (fieldname, file, info) => {
+      const { filename, mimeType } = info;
+      const chunks = [];
+
+      file.on("data", (data) => chunks.push(data));
+
+      file.on("end", () => {
+        if (filename) {
+          files.push({
+            filename,
+            content: Buffer.concat(chunks),
+            contentType: mimeType,
+          });
+        }
+      });
+    });
+
+    // Handle text fields
+    bb.on("field", (fieldname, val) => {
+      fields[fieldname] = val;
+    });
+
+    // Fires when Busboy is completely done parsing
+    bb.on("finish", () => {
+      resolve({ fields, files });
+    });
+
+    bb.on("error", (err) => {
+      console.error("Busboy error:", err);
+      reject(err);
+    });
+
+    req.pipe(bb); // Pipe incoming request into Busboy
+  });
 };
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+  // CORS headers
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-  // Handle newsletter subscription from JSON body
-  if (req.headers['content-type']?.includes('application/json')) {
-    const { email, type } = req.body;
-    if (type !== 'newsletter' || !email) {
-      return res.status(400).json({ success: false, message: "Invalid request for subscription" });
-    }
-    
+  if (req.method === "OPTIONS") return res.status(200).end();
+
+  if (req.method === "POST") {
     try {
-      const transporter = nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 465,
-        secure: true,
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
-      });
+      const { fields, files } = await parseForm(req);
 
-      const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: "ankurr.era@gmail.com",
-        subject: `New Newsletter Subscription`,
-        html: `
-          <h2>New Subscriber!</h2>
-          <p>The following email has subscribed to the newsletter:</p>
-          <p><strong>Email:</strong> ${email}</p>
-        `,
-      };
+      const { name, email, message } = fields;
 
-      await transporter.sendMail(mailOptions);
-      return res.status(200).json({ success: true, message: "Subscription email sent!" });
-      
-    } catch (error) {
-      console.error("Error sending subscription email:", error);
-      return res.status(500).json({ success: false, message: "Error sending subscription email" });
-    }
-  }
-
-  // Handle file-based form submission (for contact form)
-  const form = formidable({ multiples: false });
-
-  form.parse(req, async (err, fields, files) => {
-    if (err) {
-      console.error("Form parse error:", err);
-      return res.status(500).json({ success: false, message: "Form parsing failed" });
-    }
-
-    const { name, email, company, phone, message } = fields;
-    const document = files.document;
-
-    try {
-      const transporter = nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 465,
-        secure: true,
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
-      });
-
-      const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: "ankurr.era@gmail.com",
-        replyTo: email,
-        subject: `New Contact Form Submission from ${name}`,
-        html: `
-          <h2>New Message from Your Website</h2>
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Company:</strong> ${company || "N/A"}</p>
-          <p><strong>Phone:</strong> ${phone || "N/A"}</p>
-          <p><strong>Message:</strong></p>
-          <p>${message}</p>
-        `,
-        attachments: [],
-      };
-
-      if (document) {
-        mailOptions.attachments.push({
-          filename: document.originalFilename,
-          content: fs.readFileSync(document.filepath),
-        });
+      if (!name || !email || !message) {
+        return res.status(400).json({ error: "Missing required form fields." });
       }
 
-      await transporter.sendMail(mailOptions);
-      return res.status(200).json({ success: true, message: "Email sent successfully!" });
+      // Nodemailer setup
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.NODEMAILER_EMAIL,
+          pass: process.env.NODEMAILER_PASSWORD,
+        },
+      });
 
+      // Email options
+      const mailOptions = {
+        from: process.env.NODEMAILER_EMAIL,
+        to: process.env.NODEMAILER_EMAIL,
+        subject: `New Contact Form Submission from ${name}`,
+        html: `
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Message:</strong> ${message}</p>
+        `,
+        attachments: files,
+      };
+
+      // Send the email
+      await transporter.sendMail(mailOptions);
+      res.status(200).json({ message: "Email sent successfully!" });
     } catch (error) {
-      console.error("Error sending email:", error);
-      return res.status(500).json({ success: false, message: "Error sending email" });
+      console.error("Error in handler:", error);
+      res.status(500).json({ error: error.message || "Internal Server Error" });
     }
-  });
+  } else {
+    res.status(405).json({ error: "Method Not Allowed" });
+  }
 }
