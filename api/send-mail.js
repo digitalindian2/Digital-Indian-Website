@@ -20,9 +20,6 @@ const parseForm = (req) => {
     const fields = {};
     const files = {};
 
-    // Pipe the request to busboy immediately
-    req.pipe(bb);
-
     bb.on('file', (fieldname, file, filename, encoding, mimetype) => {
       const buffers = [];
       file.on('data', (data) => {
@@ -51,6 +48,8 @@ const parseForm = (req) => {
       console.error('Busboy error:', err);
       reject(err);
     });
+
+    req.pipe(bb);
   });
 };
 
@@ -92,9 +91,8 @@ const handler = async (req, res) => {
       });
 
       const mailOptions = {
-        from: process.env.NODEMAILER_EMAIL,
-        to: "ankurr.era@gmail.com",
-        replyTo: email,
+        from: email,
+        to: process.env.NODEMAILER_EMAIL,
         subject: `New Contact Form Submission from ${name}`,
         html: `
           <p><strong>Name:</strong> ${name}</p>
