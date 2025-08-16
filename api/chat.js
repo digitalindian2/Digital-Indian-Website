@@ -1,29 +1,37 @@
 import axios from "axios";
 
-// Combined FAQ data into a single string for the AI model's context.
-const faqKnowledgeBase = `
-  You are an AI assistant for the company 'Digital Indian'. Your goal is to be friendly, helpful, and concise.
-
-  Here is some information about Digital Indian:
-  - We offer services such as Telecom Infrastructure, Geospatial & GIS Solutions, Skill Development, and Consultancy & Business Incubation.
-  - Our business hours are Monday - Sunday, from 9:00 AM to 8:00 PM.
-  - You can contact our support team via email at info@digitalindian.co.in or by calling +91 7908735132.
-  - To book a meeting, a user can use the 'View Calendar' option on our contact page.
-  - The company's name is Digital Indian, and its mission is to transform New India through technology solutions.
-  
-  If a user asks a question about the company, prioritize using the information provided above. If the question is outside of this knowledge base, you may use your own general knowledge to answer it.
-`;
+const faqResponses = {
+  "what services do you offer?": "We offer Telecom Infrastructure, Geospatial & GIS Solutions, Skill Development, and Consultancy & Business Incubation.",
+  "what are your business hours?": "Our business hours are Monday - Sunday, from 9:00 AM to 8:00 PM.",
+  "how do i contact support?": "You can contact our support team via email at info@digitalindian.co.in or by calling +91 7908735132.",
+  "how can i book a meeting?": "You can book a meeting by using the 'View Calendar' option on our contact page.",
+};
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const userMessage = req.body.message?.trim();
-  if (!userMessage) {
-    return res.status(400).json({ reply: "Please provide a message." });
+  const userMessage = req.body.message?.toLowerCase().trim();
+
+  // Date query
+  if (userMessage.includes("date") || userMessage.includes("today")) {
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    return res.status(200).json({ reply: `Hello! Today is ${formattedDate}.` });
   }
 
+  // FAQ match
+  if (faqResponses[userMessage]) {
+    return res.status(200).json({ reply: faqResponses[userMessage] });
+  }
+
+  // Gemini API
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -35,7 +43,7 @@ export default async function handler(req, res) {
         {
           role: "user",
           parts: [
-            { text: `${faqKnowledgeBase}\n\nUser asked: "${userMessage}"` },
+            { text: `You are an AI assistant for the company 'Digital Indian'. Your goal is to be friendly and helpful. If a user asks a question, provide a concise and professional response. The user asked: "${userMessage}".` },
           ],
         },
       ],
