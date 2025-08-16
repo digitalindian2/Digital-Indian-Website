@@ -154,40 +154,41 @@ const Chatbot: React.FC = () => {
     const messageToSend = text.trim();
     if (!messageToSend || status === 'submitting') return;
 
-    // create user message (we'll append either with a quick bot reply or before backend call)
     const userMessage: Message = { text: messageToSend, sender: 'user' };
 
-    // --- Time query detection & immediate reply (no backend call) ---
+    // Time query detection & immediate reply
     const timeQueryRegex = /\b(what(?:'s| is)? the time|what time is it|current time|time now|time in)\b/i;
     if (timeQueryRegex.test(messageToSend)) {
       const tz = extractTimezoneFromMessage(messageToSend);
-      // Default timezone: Asia/Kolkata. Change below if you want browser timezone instead:
-      // const defaultTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const defaultTz = 'Asia/Kolkata';
       const usedTz = tz ?? defaultTz;
       const timeStr = formatTime(usedTz);
       const botReply = tz
-        ? `The current time in ${usedTz} is ${timeStr}.`
+        ? `The current time in ${usedTz.replace('_', ' ')} is ${timeStr}.`
         : `The current time (Asia/Kolkata) is ${timeStr}.`;
 
       const botResponse: Message = { text: botReply, sender: 'bot' };
-      // append both messages together to keep ordering correct
       setMessages(prev => [...prev, userMessage, botResponse]);
       return;
     }
 
-    // --- Normal flow: add user message and call backend ---
+    // Normal flow: add user message and call backend
     setMessages(prev => [...prev, userMessage]);
     setStatus('submitting');
 
     try {
-      const response = await fetch('http://localhost:3001/api/chat', {
+      // FIX: Use a relative path for the API endpoint. Vercel automatically handles this for you.
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: messageToSend })
       });
 
-      if (!response.ok) throw new Error('Failed to fetch response from backend.');
+      if (!response.ok) {
+        // Log the error response from the server for better debugging
+        const errorText = await response.text();
+        throw new Error(`Server responded with ${response.status}: ${errorText}`);
+      }
 
       const data = await response.json();
       const botResponse: Message = { text: data.reply, sender: 'bot' };
@@ -195,6 +196,7 @@ const Chatbot: React.FC = () => {
     } catch (error) {
       console.error("Chatbot API error:", error);
 
+      // Keep the fallback logic for a better user experience on failure
       let botReply = "Sorry, I'm having trouble connecting right now. Please try again later.";
       const lowerMessage = messageToSend.toLowerCase();
       if (lowerMessage.includes('service') || lowerMessage.includes('what do you offer')) {
