@@ -1,25 +1,25 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle, Users, Award, Globe, Zap } from 'lucide-react';
-import homethumb from '../assets/homethumb.jpg'; // Import for the Hero section
-import presentation from '../assets/presentation.jpg'; // Import for the new image
+import homethumb from '../optimized-assets/homethumb.jpg'; // Import for the Hero section
+import presentation from '../optimized-assets/presentation.jpg'; // Import for the new image
 
 // Import all logo images
-import NASSCOM from '../assets/rs=h_100,cg_true (3).jpeg';
-import JEE_NEET_ACADEMY from '../assets/rs=h_100,cg_true,m.png';
-import EC_Council from '../assets/rs=h_100,cg_true,m (4).jpeg';
-import UTKARSH_BANGLA from '../assets/rs=h_100,cg_true.jpeg';
-import NSDC from '../assets/rs=h_100,cg_true,m (3).jpeg';
-import STARTUP_INDIA from '../assets/rs=h_100,cg_true (4).jpeg';
-import TELECOM_SKILL_COUNCIL from '../assets/rs=h_100,cg_true,m (2).jpeg';
-import CII from '../assets/rs=h_100,cg_true,m (5).jpeg';
-import SKILL_INDIA from '../assets/rs=h_100,cg_true (1).jpeg';
-import ASSOCHAM from '../assets/rs=h_100,cg_true (2).jpeg';
-import WEST_BENGAL_GOVT from '../assets/rs=h_100,cg_true,m (1).jpeg';
-import NATIONAL_CAREER_SERVICE from '../assets/rs=h_100,cg_true,m.jpeg';
+import NASSCOM from '../optimized-assets/rs=h_100,cg_true (3).jpeg';
+import JEE_NEET_ACADEMY from '../optimized-assets/rs=h_100,cg_true,m.png';
+import EC_Council from '../optimized-assets/rs=h_100,cg_true,m (4).jpeg';
+import UTKARSH_BANGLA from '../optimized-assets/rs=h_100,cg_true.jpeg';
+import NSDC from '../optimized-assets/rs=h_100,cg_true,m (3).jpeg';
+import STARTUP_INDIA from '../optimized-assets/rs=h_100,cg_true (4).jpeg';
+import TELECOM_SKILL_COUNCIL from '../optimized-assets/rs=h_100,cg_true,m (2).jpeg';
+import CII from '../optimized-assets/rs=h_100,cg_true,m (5).jpeg';
+import SKILL_INDIA from '../optimized-assets/rs=h_100,cg_true (1).jpeg';
+import ASSOCHAM from '../optimized-assets/rs=h_100,cg_true (2).jpeg';
+import WEST_BENGAL_GOVT from '../optimized-assets/rs=h_100,cg_true,m (1).jpeg';
+import NATIONAL_CAREER_SERVICE from '../optimized-assets/rs=h_100,cg_true,m.jpeg';
 // New logos
-import DIGITALINDIAN_SKILL_ACADEMY from '../assets/clglogo.jpeg';
-import QR_CODE from '../assets/qr.jpeg';
+import DIGITALINDIAN_SKILL_ACADEMY from '../optimized-assets/clglogo.jpeg';
+import QR_CODE from '../optimized-assets/qr.jpeg';
 
 
 const Home = () => {

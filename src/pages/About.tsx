@@ -1,6 +1,6 @@
 import React from 'react';
 import { Users, Target, Eye, Award, MapPin, Phone, Mail } from 'lucide-react';
-import drivingSinceImage from '../assets/drivingsince.jpg';
+import drivingSinceImage from '../optimized-assets/drivingsince.jpg';
 
 const About = () => {
   const values = [

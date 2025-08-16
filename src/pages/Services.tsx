@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Globe, Zap, Users, Award, CheckCircle, ArrowRight } from 'lucide-react';
-import keyboardImage from '../assets/keyboard.jpg';
-import gisImage from '../assets/GIS.jpg';
-import skillImage from '../assets/skill.jpg';
-import consImage from '../assets/cons.jpg';
+import keyboardImage from '../optimized-assets/keyboard.jpg';
+import gisImage from '../optimized-assets/GIS.jpg';
+import skillImage from '../optimized-assets/skill.jpg';
+import consImage from '../optimized-assets/cons.jpg';
 
 const Services = () => {
   const services = [

@@ -4,7 +4,7 @@ import { MapPin, Phone, Mail, Clock, Send, CheckCircle, XCircle, Loader2, Upload
 // import { useLocation } from 'react-router-dom';
 
 // The image path is now corrected to import the asset directly.
-import thumbnailMap from '../assets/ENmap.jpg';
+import thumbnailMap from '../optimized-assets/ENmap.jpg';
 
 const Contact = () => {
     // The useLocation hook is no longer used, so we remove the variable declaration.

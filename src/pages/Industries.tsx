@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Building, Wifi, Globe, MapPin, Users, ArrowRight } from 'lucide-react';
-import TelecomOperatorsImage from '../assets/TelecomOperators.jpg';
-import internetserviceImage from '../assets/internetservice.jpg';
-import GovernmentProjectsImage from '../assets/GovernmentProjects.jpg';
-import UtilitiesImage from '../assets/Utilities.jpg';
-import CorporateImage from '../assets/Corporate.jpg';
+import TelecomOperatorsImage from '../optimized-assets/TelecomOperators.jpg';
+import internetserviceImage from '../optimized-assets/internetservice.jpg';
+import GovernmentProjectsImage from '../optimized-assets/GovernmentProjects.jpg';
+import UtilitiesImage from '../optimized-assets/Utilities.jpg';
+import CorporateImage from '../optimized-assets/Corporate.jpg';
 
 const Industries = () => {
   const industries = [
