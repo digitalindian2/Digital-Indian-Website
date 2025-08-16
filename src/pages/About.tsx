@@ -105,6 +105,8 @@ const About = () => {
                 src={drivingSinceImage}
                 alt="Team working on technology solutions"
                 className="rounded-lg shadow-xl"
+                width={800}
+                height={533}
               />
             </div>
           </div>
@@ -193,6 +195,8 @@ const About = () => {
                     src={member.image}
                     alt={member.name}
                     className="w-full h-64 object-cover transition-transform group-hover:scale-105"
+                    width={400}
+                    height={256}
                   />
                   <div className="absolute inset-0 bg-blue-600 bg-opacity-0 group-hover:bg-opacity-20 transition-all"></div>
                 </div>

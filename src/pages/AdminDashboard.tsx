@@ -237,6 +237,8 @@ const AdminDashboard: React.FC = () => {
                               src={content.image}
                               alt={content.title}
                               className="w-16 h-12 object-cover rounded-md flex-shrink-0"
+                              width={64}
+                              height={48}
                             />
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
@@ -334,6 +336,8 @@ const AdminDashboard: React.FC = () => {
                         src={content.image}
                         alt={content.title}
                         className="w-16 h-12 object-cover rounded-md flex-shrink-0"
+                        width={64}
+                        height={48}
                       />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 dark:text-white truncate">

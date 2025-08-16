@@ -176,6 +176,8 @@ const Services = () => {
                     src={service.image}
                     alt={service.title}
                     className="rounded-lg shadow-xl"
+                    width={600}
+                    height={400}
                   />
                   <div className="absolute inset-0 bg-blue-600 bg-opacity-20 rounded-lg"></div>
                 </div>

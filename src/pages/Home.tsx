@@ -199,6 +199,8 @@ const Home = () => {
                 src={presentation}
                 alt="Technology team working"
                 className="rounded-lg shadow-xl"
+                width={800}
+                height={533}
               />
               <div className="absolute inset-0 bg-blue-600 bg-opacity-20 rounded-lg"></div>
             </div>
@@ -214,36 +216,36 @@ const Home = () => {
         <div className="logo-carousel-container">
           <div className="logo-carousel flex items-center">
             {/* First set of logos */}
-            <img src={DIGITALINDIAN_SKILL_ACADEMY} alt="Digital Indian Skill Academy Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={QR_CODE} alt="QR Code" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={JEE_NEET_ACADEMY} alt="Jee Neet Academy Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={EC_Council} alt="EC-Council Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={SKILL_INDIA} alt="Skill India Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={ASSOCHAM} alt="ASSOCHAM Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={CII} alt="CII Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={NASSCOM} alt="NASSCOM Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={STARTUP_INDIA} alt="Startup India Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={UTKARSH_BANGLA} alt="Utkarsh Bangla Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={NSDC} alt="NSDC Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={TELECOM_SKILL_COUNCIL} alt="Telecom Sector Skill Council Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={WEST_BENGAL_GOVT} alt="West Bengal Govt Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={NATIONAL_CAREER_SERVICE} alt="National Career Service Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
+            <img src={DIGITALINDIAN_SKILL_ACADEMY} alt="Digital Indian Skill Academy Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={QR_CODE} alt="QR Code" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={JEE_NEET_ACADEMY} alt="Jee Neet Academy Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={EC_Council} alt="EC-Council Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={SKILL_INDIA} alt="Skill India Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={ASSOCHAM} alt="ASSOCHAM Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={CII} alt="CII Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={NASSCOM} alt="NASSCOM Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={STARTUP_INDIA} alt="Startup India Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={UTKARSH_BANGLA} alt="Utkarsh Bangla Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={NSDC} alt="NSDC Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={TELECOM_SKILL_COUNCIL} alt="Telecom Sector Skill Council Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={WEST_BENGAL_GOVT} alt="West Bengal Govt Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={NATIONAL_CAREER_SERVICE} alt="National Career Service Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
 
             {/* Second set of logos for a seamless loop */}
-            <img src={DIGITALINDIAN_SKILL_ACADEMY} alt="Digital Indian Skill Academy Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={QR_CODE} alt="QR Code" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={JEE_NEET_ACADEMY} alt="Jee Neet Academy Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={EC_Council} alt="EC-Council Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={SKILL_INDIA} alt="Skill India Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={ASSOCHAM} alt="ASSOCHAM Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={CII} alt="CII Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={NASSCOM} alt="NASSCOM Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={STARTUP_INDIA} alt="Startup India Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={UTKARSH_BANGLA} alt="Utkarsh Bangla Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={NSDC} alt="NSDC Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={TELECOM_SKILL_COUNCIL} alt="Telecom Sector Skill Council Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={WEST_BENGAL_GOVT} alt="West Bengal Govt Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
-            <img src={NATIONAL_CAREER_SERVICE} alt="National Career Service Logo" className="h-16 w-auto mr-12 flex-shrink-0" />
+            <img src={DIGITALINDIAN_SKILL_ACADEMY} alt="Digital Indian Skill Academy Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={QR_CODE} alt="QR Code" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={JEE_NEET_ACADEMY} alt="Jee Neet Academy Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={EC_Council} alt="EC-Council Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={SKILL_INDIA} alt="Skill India Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={ASSOCHAM} alt="ASSOCHAM Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={CII} alt="CII Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={NASSCOM} alt="NASSCOM Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={STARTUP_INDIA} alt="Startup India Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={UTKARSH_BANGLA} alt="Utkarsh Bangla Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={NSDC} alt="NSDC Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={TELECOM_SKILL_COUNCIL} alt="Telecom Sector Skill Council Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={WEST_BENGAL_GOVT} alt="West Bengal Govt Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
+            <img src={NATIONAL_CAREER_SERVICE} alt="National Career Service Logo" className="h-16 w-auto mr-12 flex-shrink-0" width={100} height={100} />
           </div>
         </div>
       </section>

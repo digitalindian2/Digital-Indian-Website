@@ -26,6 +26,8 @@ const BlogPost: React.FC = () => {
           src={post.image}
           alt={post.title}
           className="w-full h-96 object-cover"
+          width={1280}
+          height={384}
         />
         <div className="absolute inset-0 bg-black bg-opacity-40"></div>
         <div className="absolute inset-0 flex items-end">

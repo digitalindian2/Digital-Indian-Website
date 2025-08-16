@@ -184,11 +184,13 @@ const Industries = () => {
                 </div>
 
                 <div className={index % 2 === 1 ? 'lg:col-start-1 lg:row-start-1' : ''}>
-                  <div className="relative overflow-hidden rounded-lg">
+                  <div className="relative overflow-hidden rounded-lg aspect-w-3 aspect-h-2">
                     <img
                       src={industry.image}
                       alt={industry.title}
-                      className="w-full h-auto"
+                      className="w-full h-full object-cover"
+                      width={800} // Assuming a 3:2 aspect ratio, e.g., 800x533
+                      height={533}
                     />
                     <div className="absolute inset-0 bg-blue-600 bg-opacity-20 rounded-lg"></div>
                   </div>

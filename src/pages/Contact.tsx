@@ -503,6 +503,8 @@ const Contact = () => {
                                 src={thumbnailMap}
                                 alt="Office Location Thumbnail"
                                 className="absolute inset-0 w-full h-full object-cover"
+                                width={1280}
+                                height={384}
                             />
                             <div className="absolute inset-0 bg-gray-900 bg-opacity-40 transition-opacity opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-center p-4">
                                 <span className="text-white text-base max-w-sm">EN-9, Salt Lake, Sec-5, Kolkata-700091</span>
