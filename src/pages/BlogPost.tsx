@@ -1,4 +1,3 @@
-import React from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
 import { useBlog } from '../components/contexts/BlogContext';
 import { Calendar, User, Tag, ArrowLeft, Clock } from 'lucide-react';

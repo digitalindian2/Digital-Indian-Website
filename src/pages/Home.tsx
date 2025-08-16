@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle, Users, Award, Globe, Zap } from 'lucide-react';
 import homethumb from '../optimized-assets/homethumb.jpg'; // Import for the Hero section

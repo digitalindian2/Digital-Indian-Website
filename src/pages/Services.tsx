@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { Globe, Zap, Users, Award, CheckCircle, ArrowRight } from 'lucide-react';
 import keyboardImage from '../optimized-assets/keyboard.jpg';

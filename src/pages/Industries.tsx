@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { Building, Wifi, Globe, MapPin, Users, ArrowRight } from 'lucide-react';
 import TelecomOperatorsImage from '../optimized-assets/TelecomOperators.jpg';
