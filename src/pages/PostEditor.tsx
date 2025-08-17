@@ -20,7 +20,7 @@ const PostEditor: React.FC = () => {
     title: '',
     excerpt: '',
     content: '',
-    author: user?.email || 'Admin', // ✅ CORRECTED: Changed user?.username to user?.email
+    author: user?.email || 'Admin',
     category: 'Telecommunications',
     tags: [],
     image: '',
@@ -71,8 +71,7 @@ const PostEditor: React.FC = () => {
     'Industry News'
   ];
 
-  // ✅ CORRECTED: Made the function async
-  const handleSubmit = async (e: React.FormEvent, publish = false) => {
+  const handleSubmit = (e: React.FormEvent, publish = false) => {
     e.preventDefault();
     
     const tagsArray = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag);
@@ -85,10 +84,10 @@ const PostEditor: React.FC = () => {
     };
 
     if (isEditing && existingContent) {
-      await updateContent(existingContent.id, contentData); // ✅ CORRECTED: Added await
+      updateContent(existingContent.id, contentData);
       setSuccessMessage('Content updated successfully!');
     } else {
-      await addContent(contentData); // ✅ CORRECTED: Added await
+      addContent(contentData);
       setSuccessMessage('New content created successfully!');
     }
 

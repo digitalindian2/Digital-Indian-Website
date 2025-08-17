@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useBlog } from '../components/contexts/BlogContext';
 import { useAuth } from '../components/contexts/AuthContext';
-import {
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  EyeOff,
-  Calendar,
-  User,
+import { 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Eye, 
+  EyeOff, 
+  Calendar, 
+  User, 
   Tag,
   FileText,
   BarChart3,
@@ -22,6 +22,7 @@ const AdminDashboard: React.FC = () => {
   const [filter, setFilter] = useState<'all' | 'posts' | 'updates'>('all');
   const [isNewContentDropdownOpen, setIsNewContentDropdownOpen] = useState(false);
 
+  // Combine posts and updates into a single array and sort by date
   const allContent = [...posts, ...updates].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const filteredContent = allContent.filter(item => {
@@ -38,15 +39,13 @@ const AdminDashboard: React.FC = () => {
     drafts: allContent.filter(p => !p.published).length,
   };
 
-  // ✅ CORRECTED: Made function async to await the database update
-  const handleTogglePublish = async (contentId: string, currentStatus: boolean) => {
-    await updateContent(contentId, { published: !currentStatus });
+  const handleTogglePublish = (contentId: string, currentStatus: boolean) => {
+    updateContent(contentId, { published: !currentStatus });
   };
 
-  // ✅ CORRECTED: Made function async to await the database deletion
-  const handleDelete = async (contentId: string) => {
+  const handleDelete = (contentId: string) => {
     if (window.confirm('Are you sure you want to delete this content?')) {
-      await deleteContent(contentId);
+      deleteContent(contentId);
     }
   };
 
