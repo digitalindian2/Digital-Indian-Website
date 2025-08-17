@@ -29,7 +29,7 @@ const Blog = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Handle the subscription form submission
-  const handleSubscribe = async (e: { preventDefault: () => void; }) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
       e.preventDefault();
       setIsSubmitting(true);
       setMessage('');
@@ -153,7 +153,7 @@ const Blog = () => {
                     
                     <Link 
                       to={`/blog/${post.id}`}
-                      className="text-blue-600 dark:text-blue-400 font-medium hover:text-blue-800 dark:hover:text-blue-500 transition-colors flex items-center group"
+                      className="mt-2 text-blue-600 dark:text-blue-400 font-medium hover:text-blue-800 dark:hover:text-blue-500 transition-colors flex items-center w-fit"
                     >
                       Read More
                       <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />
