@@ -1,7 +1,6 @@
 import nodemailer from 'nodemailer';
 import busboy from 'busboy';
 import dotenv from 'dotenv';
-import { PassThrough } from 'stream';
 
 // Load environment variables for local development
 if (process.env.NODE_ENV !== 'production') {
@@ -30,7 +29,7 @@ const parseForm = (req) => {
           files[fieldname] = {
             filename: filename.filename,
             content: Buffer.concat(buffers),
-            contentType: mimetype,
+            contentType: mimetype
           };
         }
       });
@@ -65,9 +64,10 @@ const handler = async (req, res) => {
     return;
   }
 
-  // Wrap the entire logic in a single try...catch block
-  try {
-    if (req.method === 'POST') {
+  // Handle the POST request for form submission
+  if (req.method === 'POST') {
+    try {
+      // Use await to handle potential rejection from parseForm
       const { fields, files } = await parseForm(req);
 
       // Extract form data, handling busboy's object format
@@ -82,6 +82,11 @@ const handler = async (req, res) => {
         return res.status(400).json({ error: 'Missing required form fields.' });
       }
 
+      // Check if environment variables are set before creating transporter
+      if (!process.env.NODEMAILER_EMAIL || !process.env.NODEMAILER_PASSWORD) {
+        throw new Error('Nodemailer environment variables are not configured.');
+      }
+      
       const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -110,12 +115,14 @@ const handler = async (req, res) => {
 
       await transporter.sendMail(mailOptions);
       res.status(200).json({ message: 'Email sent successfully!' });
-    } else {
-      res.status(405).json({ error: 'Method Not Allowed' });
+      
+    } catch (error) {
+      console.error('Final error in handler:', error);
+      // Ensure a JSON response is always sent in case of an error
+      res.status(500).json({ error: error.message || 'Internal Server Error' });
     }
-  } catch (error) {
-    console.error('Final error in handler:', error);
-    res.status(500).json({ error: error.message || 'Internal Server Error' });
+  } else {
+    res.status(405).json({ error: 'Method Not Allowed' });
   }
 };
 
