@@ -18,6 +18,12 @@ export default function handler(req, res) {
     return;
   }
   
-  const token = uuidv4();
-  res.status(200).json({ token });
+  // Explicitly check for GET or POST methods
+  if (req.method === 'GET' || req.method === 'POST') {
+    const token = uuidv4();
+    res.status(200).json({ token });
+  } else {
+    // Return a 405 Method Not Allowed for any other method
+    res.status(405).json({ message: 'Method Not Allowed' });
+  }
 }
