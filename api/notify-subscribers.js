@@ -1,11 +1,9 @@
-// api/notify-subscribers.js
-
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY // ⚠️ Use service role key here (not anon!)
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 export default async function handler(req, res) {
@@ -36,9 +34,9 @@ export default async function handler(req, res) {
 
     // 2️⃣ Setup Nodemailer transporter (using your SMTP config)
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST, // e.g., "smtp.gmail.com"
-      port: process.env.SMTP_PORT, // usually 465 or 587
-      secure: process.env.SMTP_SECURE === 'true', // true for port 465
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      secure: process.env.SMTP_SECURE === 'true',
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
@@ -48,7 +46,7 @@ export default async function handler(req, res) {
     // 3️⃣ Send email to each subscriber
     const sendEmails = subscribers.map((subscriber) =>
       transporter.sendMail({
-        from: `"Your Blog" <${process.env.SMTP_USER}>`,
+        from: `"Digital Indian" <${process.env.SMTP_USER}>`,
         to: subscriber.email,
         subject: `📢 New Blog Post: ${title}`,
         html: `
