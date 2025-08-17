@@ -1,72 +1,70 @@
-// /api/notify-subscribers.js
+// api/notify-subscribers.js
 
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY // ✅ Make sure you use SERVICE ROLE key
+  process.env.SUPABASE_SERVICE_ROLE_KEY // ⚠️ Use service role key here (not anon!)
 );
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com", // or your provider
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   const { title, excerpt, link } = req.body;
 
+  if (!title || !excerpt || !link) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
   try {
+    // 1️⃣ Fetch all subscribers from Supabase
     const { data: subscribers, error } = await supabase
       .from('subscribers')
       .select('email');
 
-    if (error) throw error;
-
-    if (!subscribers || subscribers.length === 0) {
-      return res.status(200).json({ message: 'No subscribers to notify.' });
+    if (error) {
+      console.error('❌ Error fetching subscribers:', error);
+      return res.status(500).json({ error: 'Failed to fetch subscribers' });
     }
 
-    // HTML email template
-    const htmlContent = `
-      <div style="font-family: Arial, sans-serif; color: #333;">
-        <h2 style="color: #1d4ed8;">${title}</h2>
-        <p>${excerpt}</p>
-        <a href="${link}" 
-           style="display:inline-block; margin-top:12px; padding:10px 18px; background:#1d4ed8; color:#fff; text-decoration:none; border-radius:6px;">
-           Read Full Post
-        </a>
-        <p style="margin-top:20px; font-size:12px; color:#888;">
-          You’re receiving this email because you subscribed to our newsletter.  
-          <br />If you no longer wish to receive these emails, you can unsubscribe anytime.
-        </p>
-      </div>
-    `;
+    if (!subscribers || subscribers.length === 0) {
+      return res.status(200).json({ message: 'No subscribers found' });
+    }
 
-    // Send email to all subscribers
-    await Promise.all(
-      subscribers.map(subscriber =>
-        transporter.sendMail({
-          from: `"Digital Indian Blog" <${process.env.EMAIL_USER}>`,
-          to: subscriber.email,
-          subject: `New Blog Post: ${title}`,
-          html: htmlContent,
-        })
-      )
+    // 2️⃣ Setup Nodemailer transporter (using your SMTP config)
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST, // e.g., "smtp.gmail.com"
+      port: process.env.SMTP_PORT, // usually 465 or 587
+      secure: process.env.SMTP_SECURE === 'true', // true for port 465
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    // 3️⃣ Send email to each subscriber
+    const sendEmails = subscribers.map((subscriber) =>
+      transporter.sendMail({
+        from: `"Your Blog" <${process.env.SMTP_USER}>`,
+        to: subscriber.email,
+        subject: `📢 New Blog Post: ${title}`,
+        html: `
+          <h2>${title}</h2>
+          <p>${excerpt}</p>
+          <p><a href="${link}" target="_blank">👉 Read full post here</a></p>
+        `,
+      })
     );
 
-    res.status(200).json({ message: 'Notifications sent successfully!' });
+    await Promise.all(sendEmails);
+
+    console.log(`✅ Notifications sent to ${subscribers.length} subscribers`);
+    return res.status(200).json({ message: 'Notifications sent successfully!' });
   } catch (err) {
-    console.error('Error notifying subscribers:', err);
-    res.status(500).json({ message: 'Failed to notify subscribers.' });
+    console.error('❌ Unexpected error:', err);
+    return res.status(500).json({ error: 'An unexpected error occurred' });
   }
 }
