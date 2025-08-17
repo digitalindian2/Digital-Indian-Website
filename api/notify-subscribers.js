@@ -14,7 +14,7 @@ const supabase = createClient(
 );
 
 export const config = {
-  api: { bodyParser: true }, // We can parse JSON body here
+  api: { bodyParser: true },
 };
 
 export default async function handler(req, res) {
@@ -29,7 +29,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1️⃣ Fetch all subscribers from Supabase
+    // 1️⃣ Fetch all subscribers
     const { data: subscribers, error } = await supabase
       .from('subscribers')
       .select('email');
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: 'No subscribers found' });
     }
 
-    // 2️⃣ Setup Nodemailer transporter
+    // 2️⃣ Nodemailer transporter
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT),
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
       },
     });
 
-    // 3️⃣ Send email to each subscriber
+    // 3️⃣ Send emails
     const sendEmails = subscribers.map((subscriber) =>
       transporter.sendMail({
         from: `"Digital Indian" <${process.env.SMTP_USER}>`,
@@ -71,7 +71,7 @@ export default async function handler(req, res) {
                 .content p { color: #ccc !important; }
                 .footer { background-color: #1c1c1c !important; color: #999 !important; }
                 a.button { background: linear-gradient(90deg, #4fc3f7, #1a73e8) !important; color: white !important; }
-                a.social { filter: brightness(0.8) !important; }
+                a.social img { filter: brightness(0.8) !important; }
               }
               @media only screen and (max-width: 600px) {
                 .email-container { width: 100% !important; }
@@ -110,16 +110,16 @@ export default async function handler(req, res) {
               <!-- Social Media -->
               <div style="text-align:center; padding:15px;">
                 <a href="https://facebook.com" target="_blank" class="social" style="margin:0 5px;">
-                  <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/facebook.svg" width="24" height="24" style="vertical-align:middle;">
+                  <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" width="24" height="24" style="vertical-align:middle;">
                 </a>
                 <a href="https://twitter.com" target="_blank" class="social" style="margin:0 5px;">
-                  <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/twitter.svg" width="24" height="24" style="vertical-align:middle;">
+                  <img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" width="24" height="24" style="vertical-align:middle;">
                 </a>
                 <a href="https://instagram.com" target="_blank" class="social" style="margin:0 5px;">
-                  <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/instagram.svg" width="24" height="24" style="vertical-align:middle;">
+                  <img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" width="24" height="24" style="vertical-align:middle;">
                 </a>
                 <a href="https://linkedin.com" target="_blank" class="social" style="margin:0 5px;">
-                  <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/linkedin.svg" width="24" height="24" style="vertical-align:middle;">
+                  <img src="https://cdn-icons-png.flaticon.com/512/733/733561.png" width="24" height="24" style="vertical-align:middle;">
                 </a>
               </div>
 
