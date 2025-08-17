@@ -30,7 +30,7 @@ const parseForm = (req) => {
           files[fieldname] = {
             filename: filename.filename,
             content: Buffer.concat(buffers),
-            contentType: mimetype
+            contentType: mimetype,
           };
         }
       });
@@ -65,9 +65,9 @@ const handler = async (req, res) => {
     return;
   }
 
-  // Handle the POST request for form submission
-  if (req.method === 'POST') {
-    try {
+  // Wrap the entire logic in a single try...catch block
+  try {
+    if (req.method === 'POST') {
       const { fields, files } = await parseForm(req);
 
       // Extract form data, handling busboy's object format
@@ -110,13 +110,12 @@ const handler = async (req, res) => {
 
       await transporter.sendMail(mailOptions);
       res.status(200).json({ message: 'Email sent successfully!' });
-      
-    } catch (error) {
-      console.error('Final error in handler:', error);
-      res.status(500).json({ error: error.message || 'Internal Server Error' });
+    } else {
+      res.status(405).json({ error: 'Method Not Allowed' });
     }
-  } else {
-    res.status(405).json({ error: 'Method Not Allowed' });
+  } catch (error) {
+    console.error('Final error in handler:', error);
+    res.status(500).json({ error: error.message || 'Internal Server Error' });
   }
 };
 
