@@ -22,7 +22,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { title, excerpt, link, featuredImage } = req.body;
+  const { title, excerpt, link } = req.body;
 
   if (!title || !excerpt || !link) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -74,7 +74,6 @@ export default async function handler(req, res) {
               }
               @media only screen and (max-width: 600px) {
                 .email-container { width: 100% !important; }
-                img { width: 100% !important; height: auto !important; }
               }
             </style>
           </head>
@@ -85,17 +84,6 @@ export default async function handler(req, res) {
               <div class="header" style="background-color:#1d72b8; padding:30px; text-align:center; color:white;">
                 <h1 style="margin:0; font-size:28px;">Digital Indian</h1>
                 <p style="margin:5px 0 0; font-size:14px;">Your weekly dose of tech & insights</p>
-              </div>
-
-              <!-- Featured Image -->
-              <div style="text-align:center; margin:20px 0;">
-                <a href="${link}" target="_blank" style="text-decoration:none;">
-                  <img 
-                    src="${featuredImage?.startsWith('http') ? featuredImage : 'https://via.placeholder.com/800x300.png?text=New+Blog+Post'}" 
-                    alt="Blog Banner" 
-                    style="width:90%; max-width:800px; display:block; margin:auto; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.15);" 
-                  />
-                </a>
               </div>
 
               <!-- Content -->
