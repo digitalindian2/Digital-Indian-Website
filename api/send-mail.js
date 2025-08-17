@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import busboy from 'busboy';
 import dotenv from 'dotenv';
+import { PassThrough } from 'stream';
 
 // Load environment variables locally
 if (process.env.NODE_ENV !== 'production') {
@@ -18,13 +19,14 @@ const parseForm = (req) =>
     const fields = {};
     const files = {};
 
-    bb.on('file', (fieldname, file, filename, encoding, mimetype) => {
+    bb.on('file', (fieldname, file, info) => { // ✅ CORRECTED: Use 'info' object from busboy for filename
+      const { filename, encoding, mimetype } = info;
       const buffers = [];
       file.on('data', (data) => buffers.push(data));
       file.on('end', () => {
-        if (buffers.length) {
+        if (buffers.length > 0) {
           files[fieldname] = {
-            filename, // correct usage
+            filename,
             content: Buffer.concat(buffers),
             contentType: mimetype,
           };
