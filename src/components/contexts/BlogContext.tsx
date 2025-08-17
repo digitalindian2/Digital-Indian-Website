@@ -1,7 +1,7 @@
 // src/components/contexts/BlogContext.tsx
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../../supabaseClient'; // your Supabase client
+import { supabase } from '../../supabaseClient';
 import { BlogPost } from '../../types/blog';
 
 // Supabase row type
@@ -24,7 +24,7 @@ export interface SupabasePostRow {
 interface BlogContextType {
   posts: BlogPost[];
   updates: BlogPost[];
-  addContent: (post: Omit<BlogPost, 'id'>) => Promise<void>;
+  addContent: (post: Omit<BlogPost, 'id' | 'author'>) => Promise<void>;
   updateContent: (id: string, updatedPost: Partial<BlogPost>) => void;
   deleteContent: (id: string) => void;
   getContent: (id: string) => BlogPost | undefined;
@@ -48,7 +48,6 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data) {
-        // Explicitly casting the fetched data to the correct type
         const formatted: BlogPost[] = (data as SupabasePostRow[]).map((item) => ({
           id: item.id.toString(),
           title: item.title,
@@ -72,7 +71,16 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadPosts();
   }, []);
 
-  const addContent = async (content: Omit<BlogPost, 'id'>) => {
+  const addContent = async (content: Omit<BlogPost, 'id' | 'author'>) => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      console.error('No authenticated user found');
+      return;
+    }
+
     const { data, error } = await supabase
       .from('posts')
       .insert([
@@ -80,7 +88,7 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
           title: content.title,
           excerpt: content.excerpt,
           content: content.content,
-          author: content.author,
+          author: user.id, // Automatically use authenticated user ID
           date: content.date,
           category: content.category,
           tags: content.tags,
