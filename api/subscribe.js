@@ -46,7 +46,7 @@ export default async function handler(req, res) {
     }
 
     // If the insertion was successful, send a success response.
-    return res.status(200).json({ message: 'Thank you for subscribing! You will now receive updates.' });
+    return res.status(200).json({ message: 'Successfully subscribed!' });
   } catch (err) {
     // Catch any unexpected errors during the process.
     console.error('Unexpected error:', err);
