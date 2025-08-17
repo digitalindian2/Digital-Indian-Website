@@ -29,7 +29,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Fetch all subscribers
+    // 1️⃣ Fetch all subscribers
     const { data: subscribers, error } = await supabase
       .from('subscribers')
       .select('email');
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: 'No subscribers found' });
     }
 
-    // Nodemailer transporter
+    // 2️⃣ Nodemailer transporter
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT),
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
       },
     });
 
-    // Send emails
+    // 3️⃣ Send emails
     const sendEmails = subscribers.map((subscriber) =>
       transporter.sendMail({
         from: `"Digital Indian" <${process.env.SMTP_USER}>`,
@@ -89,9 +89,13 @@ export default async function handler(req, res) {
 
               <!-- Featured Image -->
               <div style="text-align:center; margin:20px 0;">
-                <img src="${featuredImage || 'https://via.placeholder.com/800x300.png?text=New+Blog+Post'}" 
-                     alt="Blog Banner" 
-                     style="width:90%; max-width:800px; display:block; margin:auto; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.15);" />
+                <a href="${link}" target="_blank" style="text-decoration:none;">
+                  <img 
+                    src="${featuredImage?.startsWith('http') ? featuredImage : 'https://via.placeholder.com/800x300.png?text=New+Blog+Post'}" 
+                    alt="Blog Banner" 
+                    style="width:90%; max-width:800px; display:block; margin:auto; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.15);" 
+                  />
+                </a>
               </div>
 
               <!-- Content -->
