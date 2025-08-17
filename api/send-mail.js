@@ -82,7 +82,7 @@ const handler = async (req, res) => {
         <!-- Header -->
         <div style="background-color: #004aad; color: white; padding: 20px; text-align: center;">
           <h1 style="margin: 0; font-size: 24px;">New Contact Form Submission</h1>
-          <p style="margin: 5px 0 0 0; font-size: 14px;">From your website contact form</p>
+          <p style="margin: 5px 0 0 0; font-size: 14px;">From DIGITAL INDIAN Website</p>
         </div>
 
         <!-- Body -->
