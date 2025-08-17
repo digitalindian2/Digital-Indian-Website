@@ -4,7 +4,6 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 import { BlogPost } from '../../types/blog';
 
-// Supabase row type
 export interface SupabasePostRow {
   id: number;
   title: string;
@@ -20,11 +19,10 @@ export interface SupabasePostRow {
   content_type: 'post' | 'update';
 }
 
-// Context type
 interface BlogContextType {
   posts: BlogPost[];
   updates: BlogPost[];
-  addContent: (post: Omit<BlogPost, 'id' | 'author'>) => Promise<void>;
+  addContent: (post: Omit<BlogPost, 'id'>) => Promise<void>;
   updateContent: (id: string, updatedPost: Partial<BlogPost>) => void;
   deleteContent: (id: string) => void;
   getContent: (id: string) => BlogPost | undefined;
@@ -38,14 +36,8 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const loadPosts = async () => {
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*');
-
-      if (error) {
-        console.error(error);
-        return;
-      }
+      const { data, error } = await supabase.from('posts').select('*');
+      if (error) return console.error(error);
 
       if (data) {
         const formatted: BlogPost[] = (data as SupabasePostRow[]).map((item) => ({
@@ -71,12 +63,14 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadPosts();
   }, []);
 
-  const addContent = async (content: Omit<BlogPost, 'id' | 'author'>) => {
+  const addContent = async (content: Omit<BlogPost, 'id'>) => {
+    // Ensure user is logged in
     const {
       data: { user },
+      error: authError,
     } = await supabase.auth.getUser();
 
-    if (!user) {
+    if (authError || !user) {
       console.error('No authenticated user found');
       return;
     }
@@ -88,7 +82,7 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
           title: content.title,
           excerpt: content.excerpt,
           content: content.content,
-          author: user.id, // Automatically use authenticated user ID
+          author: user.id, // use logged-in user's UID
           date: content.date,
           category: content.category,
           tags: content.tags,
@@ -102,7 +96,7 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .single();
 
     if (error || !data) {
-      console.error('Insert error:', error);
+      console.error('Insert failed:', error);
       return;
     }
 
@@ -138,9 +132,7 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUpdates((prev) => prev.filter((u) => u.id !== id));
   };
 
-  const getContent = (id: string) => {
-    return [...posts, ...updates].find((c) => c.id === id);
-  };
+  const getContent = (id: string) => [...posts, ...updates].find((c) => c.id === id);
 
   return (
     <BlogContext.Provider
