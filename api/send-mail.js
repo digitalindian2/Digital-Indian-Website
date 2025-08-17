@@ -2,15 +2,13 @@ import nodemailer from 'nodemailer';
 import busboy from 'busboy';
 import dotenv from 'dotenv';
 
-// Load local env variables in development
+// Load environment variables locally
 if (process.env.NODE_ENV !== 'production') {
   dotenv.config({ path: '.env.local' });
 }
 
 export const config = {
-  api: {
-    bodyParser: false, // disable default body parsing
-  },
+  api: { bodyParser: false },
 };
 
 // Parse multipart form
@@ -24,9 +22,9 @@ const parseForm = (req) =>
       const buffers = [];
       file.on('data', (data) => buffers.push(data));
       file.on('end', () => {
-        if (buffers.length > 0) {
+        if (buffers.length) {
           files[fieldname] = {
-            filename, // ✅ correct usage
+            filename, // correct usage
             content: Buffer.concat(buffers),
             contentType: mimetype,
           };
@@ -35,7 +33,6 @@ const parseForm = (req) =>
     });
 
     bb.on('field', (fieldname, val) => (fields[fieldname] = val));
-
     bb.on('finish', () => resolve({ fields, files }));
     bb.on('error', (err) => reject(err));
 
@@ -43,17 +40,13 @@ const parseForm = (req) =>
   });
 
 const handler = async (req, res) => {
-  // Set CORS headers
+  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  // Handle preflight
   if (req.method === 'OPTIONS') return res.status(200).end();
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
   try {
     const { fields, files } = await parseForm(req);
@@ -61,26 +54,28 @@ const handler = async (req, res) => {
     const { name, email, company, phone, message } = fields;
     const document = files.document;
 
+    // Validate required fields
     if (!name || !email || !message) {
-      return res.status(400).json({ error: 'Missing required fields.' });
+      return res.status(400).json({ error: 'Missing required fields: name, email, or message.' });
     }
 
-    // Check environment variables
-    if (!process.env.NODEMAILER_EMAIL || !process.env.NODEMAILER_PASSWORD) {
-      return res.status(500).json({ error: 'Email service not configured.' });
+    // Check env variables
+    const userEmail = process.env.NODEMAILER_EMAIL;
+    const userPassword = process.env.NODEMAILER_PASSWORD;
+
+    if (!userEmail || !userPassword) {
+      return res.status(500).json({ error: 'Email service not configured on the server.' });
     }
 
+    // Setup Nodemailer
     const transporter = nodemailer.createTransport({
       service: 'gmail',
-      auth: {
-        user: process.env.NODEMAILER_EMAIL,
-        pass: process.env.NODEMAILER_PASSWORD,
-      },
+      auth: { user: userEmail, pass: userPassword },
     });
 
     const mailOptions = {
       from: email,
-      to: process.env.NODEMAILER_EMAIL,
+      to: userEmail,
       subject: `Contact Form Submission from ${name}`,
       html: `
         <p><strong>Name:</strong> ${name}</p>
