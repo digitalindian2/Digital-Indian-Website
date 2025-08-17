@@ -1,57 +1,87 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, AuthContextType } from '../../types/blog';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '../../supabaseClient'; 
+import { Session, User, AuthChangeEvent, SignInWithPasswordCredentials } from '@supabase/supabase-js';
 
-const ADMIN_CREDENTIALS = {
-  username: import.meta.env.VITE_ADMIN_USER,
-  password: import.meta.env.VITE_ADMIN_PASS,
-  user: {
-    id: '1',
-    username: 'admin',
-    email: 'admin@techsolutions.com',
-    role: 'admin' as const
-  }
-};
+// Define the shape of the context value
+interface AuthContextType {
+  session: Session | null;
+  user: User | null;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  loading: boolean;
+  login: (credentials: SignInWithPasswordCredentials) => Promise<{ success: boolean; error: string | null }>;
+  logout: () => Promise<void>;
+}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+// Admin role check - for simplicity, we assume the admin is identified by a specific email
+// stored in your environment variables. This is a secure approach.
+const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL;
+
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
+    // Check for an active session on initial load
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    // Listen for auth state changes
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (_event: AuthChangeEvent, session: Session | null) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
+
+    // Cleanup listener on unmount
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
   }, []);
 
-  const login = async (username: string, password: string): Promise<boolean> => {
-    if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-      setUser(ADMIN_CREDENTIALS.user);
-      localStorage.setItem('currentUser', JSON.stringify(ADMIN_CREDENTIALS.user));
-      return true;
+  // Login function
+  const login = async (credentials: SignInWithPasswordCredentials) => {
+    const { error } = await supabase.auth.signInWithPassword(credentials);
+    if (error) {
+      return { success: false, error: error.message };
     }
-    return false;
+    return { success: true, error: null };
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('currentUser');
+  // Logout function
+  const logout = async () => {
+    await supabase.auth.signOut();
   };
 
   const value: AuthContextType = {
+    session,
     user,
+    loading,
+    isAuthenticated: !!session, // User is authenticated if a session exists
+    isAdmin: !!session && session.user.email === ADMIN_EMAIL, // Check if the logged-in user is the admin
     login,
     logout,
-    isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin'
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {!loading && children}
+    </AuthContext.Provider>
+  );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;

@@ -20,7 +20,7 @@ const PostEditor: React.FC = () => {
     title: '',
     excerpt: '',
     content: '',
-    author: user?.username || 'Admin',
+    author: user?.email || 'Admin', // ✅ CORRECTED: Changed user?.username to user?.email
     category: 'Telecommunications',
     tags: [],
     image: '',

@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../components/contexts/AuthContext';
-import { Lock, User, Eye, EyeOff } from 'lucide-react';
+import { Lock, AtSign, Eye, EyeOff } from 'lucide-react';
 
 const Login: React.FC = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -24,15 +25,15 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      const success = await login(username, password);
+      // ✅ CORRECTED: Passed credentials as a single object
+      const { success, error: loginError } = await login({ email, password });
       if (success) {
         navigate('/admin');
       } else {
-        setError('Invalid username or password');
+        setError(loginError || 'Invalid email or password');
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_err) {
-      setError('An error occurred during login');
+      setError('An error occurred during login. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -60,30 +61,25 @@ const Login: React.FC = () => {
                 {error}
               </div>
             )}
-
-            <div className="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-200 px-4 py-3 rounded-md text-sm">
-              <p className="font-medium">Demo Credentials:</p>
-              <p>Username: <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">admin</code></p>
-              <p>Password: <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">admin123</code></p>
-            </div>
-
+            
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Username
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Email Address
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
+                  <AtSign className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  id="username"
-                  name="username"
-                  type="text"
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
                   required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                  placeholder="Enter your username"
+                  placeholder="admin@example.com"
                 />
               </div>
             </div>
@@ -100,6 +96,7 @@ const Login: React.FC = () => {
                   id="password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -130,12 +127,6 @@ const Login: React.FC = () => {
               </button>
             </div>
           </form>
-        </div>
-
-        <div className="text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            This is a demo login system. In production, this would be connected to a secure authentication service.
-          </p>
         </div>
       </div>
     </div>

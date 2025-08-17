@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 // src/components/contexts/BlogContext.tsx
 
 import { createContext, useContext, useState, useEffect } from 'react';

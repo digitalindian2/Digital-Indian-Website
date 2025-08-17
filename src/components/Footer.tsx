@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Facebook, Linkedin, Instagram, Youtube } from 'lucide-react';
-import { useAuth } from '../components/contexts/AuthContext'; // ✅ Added so we can use login state
+import { useAuth } from './contexts/AuthContext'; // Corrected path
 import logo from '../assets/logo.png';
 
 const Footer = () => {
-  const { isAuthenticated, isAdmin, user, logout } = useAuth(); // ✅ Same as Navbar
+  // Updated to use the new properties from the Supabase AuthContext
+  const { isAuthenticated, isAdmin, user, logout } = useAuth();
 
   return (
     <footer className="bg-gray-900 text-white">
@@ -103,14 +104,15 @@ const Footer = () => {
                 </a>
               </div>
 
-              {/* ✅ Admin Login / Logout */}
+              {/* Admin Login / Logout */}
               <div className="mt-4">
                 {isAuthenticated ? (
                   <button
                     onClick={logout}
                     className="text-gray-400 hover:text-red-400 text-sm transition-colors"
                   >
-                    Logout {isAdmin && `(Admin: ${user?.username})`}
+                    {/* ✅ CORRECTED: Changed user?.username to user?.email */}
+                    Logout {isAdmin && user?.email && `(Admin: ${user.email})`}
                   </button>
                 ) : (
                   <Link

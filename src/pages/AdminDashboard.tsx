@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useBlog } from '../components/contexts/BlogContext';
 import { useAuth } from '../components/contexts/AuthContext';
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  EyeOff, 
-  Calendar, 
-  User, 
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  EyeOff,
+  Calendar,
+  User,
   Tag,
   FileText,
   BarChart3,
@@ -22,7 +22,6 @@ const AdminDashboard: React.FC = () => {
   const [filter, setFilter] = useState<'all' | 'posts' | 'updates'>('all');
   const [isNewContentDropdownOpen, setIsNewContentDropdownOpen] = useState(false);
 
-  // Combine posts and updates into a single array and sort by date
   const allContent = [...posts, ...updates].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const filteredContent = allContent.filter(item => {
@@ -58,7 +57,7 @@ const AdminDashboard: React.FC = () => {
             Admin Dashboard
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Welcome back, {user?.username}! Manage your blog posts and company updates.
+            Welcome back, {user?.email}! Manage your blog posts and company updates.
           </p>
         </div>
 
