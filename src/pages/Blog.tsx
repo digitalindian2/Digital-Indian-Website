@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useBlog } from '../components/contexts/BlogContext';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 import { Calendar, User, ArrowRight, Tag } from 'lucide-react';
 
 const Blog = () => {
@@ -19,7 +21,42 @@ const Blog = () => {
     'Business Development'
   ];
 
-  const [selectedCategory, setSelectedCategory] = React.useState('All Posts');
+  const [selectedCategory, setSelectedCategory] = useState('All Posts');
+  
+  // State for the subscription form
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Handle the subscription form submission
+  const handleSubscribe = async (e: { preventDefault: () => void; }) => {
+      e.preventDefault();
+      setIsSubmitting(true);
+      setMessage('');
+
+      try {
+          // Send the email to the API endpoint
+          const response = await fetch('/api/subscribe', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ email }),
+          });
+
+          const data = await response.json();
+          setMessage(data.message);
+          
+          if (response.ok) {
+              setEmail(''); // Clear the input on success
+          }
+      } catch (error) {
+          console.error('Failed to subscribe:', error);
+          setMessage('An error occurred. Please try again.');
+      } finally {
+          setIsSubmitting(false);
+      }
+  };
 
   const filteredPosts = selectedCategory === 'All Posts' 
     ? publishedPosts 
@@ -27,6 +64,7 @@ const Blog = () => {
 
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-200 transition-colors duration-500">
+      <Header />
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-900 to-blue-700 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -105,8 +143,8 @@ const Blog = () => {
                     <div className="flex items-center space-x-2">
                       <Tag className="h-4 w-4 text-gray-400" />
                       <div className="flex flex-wrap gap-1">
-                        {post.tags.slice(0, 2).map((tag: string, index: React.Key | null | undefined) => (
-                          <span key={index} className="text-xs text-blue-600 dark:text-blue-200 bg-blue-50 dark:bg-blue-800 px-2 py-1 rounded">
+                        {post.tags.slice(0, 2).map((tag) => (
+                          <span key={tag} className="text-xs text-blue-600 dark:text-blue-200 bg-blue-50 dark:bg-blue-800 px-2 py-1 rounded">
                             {tag}
                           </span>
                         ))}
@@ -146,16 +184,29 @@ const Blog = () => {
           </p>
           
           <div className="max-w-md mx-auto">
-            <div className="flex">
+            <form onSubmit={handleSubscribe} className="flex">
               <input
                 type="email"
                 placeholder="Enter your email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
                 className="flex-1 px-4 py-3 rounded-l-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-800 dark:text-white"
               />
-              <button className="bg-orange-500 text-white px-6 py-3 rounded-r-lg font-semibold hover:bg-orange-600 transition-colors">
-                Subscribe
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-orange-500 text-white px-6 py-3 rounded-r-lg font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? 'Subscribing...' : 'Subscribe'}
               </button>
-            </div>
+            </form>
+            {message && (
+                <p className="text-center mt-4 text-sm font-medium"
+                   style={{ color: message.includes('success') ? 'green' : 'red' }}>
+                    {message}
+                </p>
+            )}
             <p className="text-blue-100 dark:text-blue-200 text-sm mt-2">
               We respect your privacy. Unsubscribe at any time.
             </p>
@@ -225,6 +276,7 @@ const Blog = () => {
           </Link>
         </div>
       </section>
+      <Footer />
     </div>
   );
 };
