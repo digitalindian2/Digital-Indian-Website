@@ -29,7 +29,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1️⃣ Fetch all subscribers
+    // Fetch all subscribers
     const { data: subscribers, error } = await supabase
       .from('subscribers')
       .select('email');
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: 'No subscribers found' });
     }
 
-    // 2️⃣ Nodemailer transporter
+    // Nodemailer transporter
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT),
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
       },
     });
 
-    // 3️⃣ Send emails
+    // Send emails
     const sendEmails = subscribers.map((subscriber) =>
       transporter.sendMail({
         from: `"Digital Indian" <${process.env.SMTP_USER}>`,
@@ -71,7 +71,6 @@ export default async function handler(req, res) {
                 .content p { color: #ccc !important; }
                 .footer { background-color: #1c1c1c !important; color: #999 !important; }
                 a.button { background: linear-gradient(90deg, #4fc3f7, #1a73e8) !important; color: white !important; }
-                a.social img { filter: brightness(0.8) !important; }
               }
               @media only screen and (max-width: 600px) {
                 .email-container { width: 100% !important; }
@@ -89,10 +88,10 @@ export default async function handler(req, res) {
               </div>
 
               <!-- Featured Image -->
-              <div style="text-align:center;">
-                <img src="${featuredImage || 'https://via.placeholder.com/600x200.png?text=New+Blog+Post'}" 
+              <div style="text-align:center; margin:20px 0;">
+                <img src="${featuredImage || 'https://via.placeholder.com/800x300.png?text=New+Blog+Post'}" 
                      alt="Blog Banner" 
-                     style="width:100%; max-width:600px; display:block;" />
+                     style="width:90%; max-width:800px; display:block; margin:auto; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.15);" />
               </div>
 
               <!-- Content -->
@@ -105,22 +104,6 @@ export default async function handler(req, res) {
                     Read Full Post
                   </a>
                 </p>
-              </div>
-
-              <!-- Social Media -->
-              <div style="text-align:center; padding:15px;">
-                <a href="https://facebook.com" target="_blank" class="social" style="margin:0 5px;">
-                  <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" width="24" height="24" style="vertical-align:middle;">
-                </a>
-                <a href="https://twitter.com" target="_blank" class="social" style="margin:0 5px;">
-                  <img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" width="24" height="24" style="vertical-align:middle;">
-                </a>
-                <a href="https://instagram.com" target="_blank" class="social" style="margin:0 5px;">
-                  <img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" width="24" height="24" style="vertical-align:middle;">
-                </a>
-                <a href="https://linkedin.com" target="_blank" class="social" style="margin:0 5px;">
-                  <img src="https://cdn-icons-png.flaticon.com/512/733/733561.png" width="24" height="24" style="vertical-align:middle;">
-                </a>
               </div>
 
               <!-- Footer -->
