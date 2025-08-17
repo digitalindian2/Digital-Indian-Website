@@ -75,26 +75,45 @@ const handler = async (req, res) => {
       auth: { user: userEmail, pass: userPassword },
     });
 
-    // Professional-looking email HTML
+    // Professional HTML email with logo and CTA
     const mailHtml = `
-      <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 8px;">
-        <h2 style="text-align: center; color: #004aad;">New Contact Form Submission</h2>
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Company:</strong> ${company || 'N/A'}</p>
-        <p><strong>Phone:</strong> ${phone || 'N/A'}</p>
-        <p><strong>Message:</strong></p>
-        <p style="background: #f9f9f9; padding: 10px; border-radius: 4px;">${message}</p>
-        ${
-          document
-            ? `<p><strong>Attachment:</strong> ${document.filename}</p>`
-            : ''
-        }
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-        <p style="font-size: 12px; color: #888; text-align: center;">
-          This email was sent from your website's contact form.
-        </p>
+      <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
+        
+        <!-- Header -->
+        <div style="background-color: #004aad; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0; font-size: 24px;">New Contact Form Submission</h1>
+          <p style="margin: 5px 0 0 0; font-size: 14px;">From your website contact form</p>
+        </div>
+
+        <!-- Body -->
+        <div style="padding: 20px;">
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Company:</strong> ${company || 'N/A'}</p>
+          <p><strong>Phone:</strong> ${phone || 'N/A'}</p>
+
+          <p><strong>Message:</strong></p>
+          <p style="background: #f1f1f1; padding: 15px; border-radius: 5px;">${message}</p>
+
+          ${
+            document
+              ? `<p><strong>Attachment:</strong> ${document.filename}</p>`
+              : ''
+          }
+
+          <!-- CTA Button -->
+          <div style="text-align: center; margin-top: 30px;">
+            <a href="mailto:${email}" 
+               style="background-color: #004aad; color: white; text-decoration: none; padding: 12px 25px; border-radius: 5px; display: inline-block;">
+              Reply to ${name}
+            </a>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #f9f9f9; color: #888; text-align: center; font-size: 12px; padding: 10px;">
+          This email was automatically generated from your website's contact form.
+        </div>
       </div>
     `;
 
