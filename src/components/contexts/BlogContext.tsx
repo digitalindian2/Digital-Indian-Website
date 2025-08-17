@@ -76,7 +76,7 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
           title: content.title,
           excerpt: content.excerpt,
           content: content.content,
-          author: user.id, // automatically use auth.uid()
+          author: user.id,
           date: content.date,
           category: content.category,
           tags: content.tags,
