@@ -19,6 +19,7 @@ const Login = lazy(() => import("./pages/Login"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const PostEditor = lazy(() => import("./pages/PostEditor"));
 const ProtectedRoute = lazy(() => import("./components/ProtectedRoute"));
+const SignUp = lazy(() => import("../src/pages/SignUp")); // Import the new SignUp page
 
 function App() {
   return (
@@ -39,6 +40,9 @@ function App() {
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:id" element={<BlogPost />} />
                 <Route path="/login" element={<Login />} />
+                
+                {/* Temporary Route for Admin Creation */}
+                <Route path="/signup" element={<SignUp />} />
 
                 {/* Admin Routes */}
                 <Route
