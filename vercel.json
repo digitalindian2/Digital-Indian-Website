@@ -30,7 +30,7 @@
   ],
   "functions": {
     "api/**/*.js": {
-      "runtime": "nodejs18.x"
+      "runtime": "@vercel/node@18.x"
     },
     "api/subscribe.js": {
       "includeFiles": "backend/**"
