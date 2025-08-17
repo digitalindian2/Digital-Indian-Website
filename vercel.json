@@ -9,6 +9,10 @@
       "destination": "/api/send-mail.js"
     },
     {
+      "source": "/api/subscribe",
+      "destination": "/api/subscribe.js"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
@@ -23,5 +27,17 @@
         { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/subscribe.js": {
+      "includeFiles": [
+        "backend/package.json",
+        "backend/package-lock.json",
+        "backend/node_modules/**"
+      ]
+    }
+  }
 }
