@@ -103,7 +103,10 @@ export default async function handler(req, res) {
                 <p style="margin:0;">You are receiving this email because you subscribed to Digital Indian blog updates.</p>
                 <p style="margin:5px 0 0;">&copy; ${new Date().getFullYear()} Digital Indian. All rights reserved.</p>
                 <p style="margin:5px 0 0;">
-                  <a href="https://yourdomain.com/unsubscribe" target="_blank" style="color:#1d72b8; text-decoration:none;">Unsubscribe</a>
+                  <a href="https://digital-indian-website.vercel.app/api/unsubscribe?email=${encodeURIComponent(subscriber.email)}" 
+                     target="_blank" style="color:#1d72b8; text-decoration:none;">
+                    Unsubscribe
+                  </a>
                 </p>
               </div>
 
