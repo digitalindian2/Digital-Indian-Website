@@ -71,24 +71,31 @@ const PostEditor: React.FC = () => {
     'Industry News'
   ];
 
-  // ✅ CORRECTED: Made the function async
   const handleSubmit = async (e: React.FormEvent, publish = false) => {
     e.preventDefault();
     
+    // ✅ ADDED: A null check to ensure 'user' exists before accessing its 'id' property.
+    if (!user) {
+        console.error("User not authenticated. Cannot submit content.");
+        return;
+    }
+    
     const tagsArray = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag);
     
+    // ✅ CORRECTED: The keys now match the camelCase format of BlogPost type.
     const contentData = {
-      ...formData,
-      tags: tagsArray,
-      date: existingContent?.date || new Date().toISOString().split('T')[0],
-      published: publish || formData.published
+        ...formData,
+        tags: tagsArray,
+        date: existingContent?.date || new Date().toISOString().split('T')[0],
+        published: publish || formData.published,
+        author_id: user.id // Pass the user's ID for RLS
     };
 
     if (isEditing && existingContent) {
-      await updateContent(existingContent.id, contentData); // ✅ CORRECTED: Added await
+      await updateContent(existingContent.id, contentData);
       setSuccessMessage('Content updated successfully!');
     } else {
-      await addContent(contentData); // ✅ CORRECTED: Added await
+      await addContent(contentData);
       setSuccessMessage('New content created successfully!');
     }
 

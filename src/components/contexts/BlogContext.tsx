@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../../supabaseClient';
 import { BlogPost } from '../../types/blog';
-import { useAuth } from './AuthContext';
+import { useAuth } from './AuthContext'; // Added to get the user's ID
 
 // This interface should match the columns in your Supabase 'posts' table
 export interface SupabasePostRow {
@@ -11,7 +11,7 @@ export interface SupabasePostRow {
   excerpt: string;
   content: string;
   author: string;
-  author_id: string; // ✅ ADDED: This is a crucial addition for RLS
+  author_id: string; // Crucial for RLS, should be of type string to match user.id
   date: string;
   category: string;
   tags: string[];
@@ -35,7 +35,7 @@ const BlogContext = createContext<BlogContextType | undefined>(undefined);
 export const BlogProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [updates, setUpdates] = useState<BlogPost[]>([]);
-  const { user } = useAuth(); // ✅ ADDED: To get the current user's ID
+  const { user } = useAuth();
 
   // Function to fetch and format data from Supabase
   const loadContent = async () => {
@@ -70,17 +70,28 @@ export const BlogProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     loadContent();
   }, []);
 
-  // ✅ CORRECTED: Updated to send the author_id
   const addContent = async (contentData: Omit<BlogPost, 'id'>) => {
+    // Check if the user is authenticated before attempting to add content
     if (!user) {
-        console.error("User is not authenticated. Cannot add content.");
-        return;
+      console.error("User is not authenticated. Cannot add content.");
+      return;
     }
     
+    // The keys sent to Supabase must be in snake_case to match the table schema
     const { error } = await supabase.from('posts').insert([
       {
-        ...contentData, // Keep existing fields
-        author_id: user.id // ✅ Pass the user's UUID from the auth context
+        title: contentData.title,
+        excerpt: contentData.excerpt,
+        content: contentData.content,
+        author: contentData.author,
+        date: contentData.date,
+        category: contentData.category,
+        tags: contentData.tags,
+        image: contentData.image,
+        read_time: contentData.readTime, // Corrected from readTime to read_time
+        published: contentData.published,
+        content_type: contentData.contentType, // Corrected from contentType to content_type
+        author_id: user.id, // Pass the user's ID for RLS
       },
     ]);
     if (error) {
@@ -91,19 +102,29 @@ export const BlogProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const updateContent = async (id: string, updatedContent: Partial<BlogPost>) => {
+    // Check if the user is authenticated before attempting to update content
     if (!user) {
-        console.error("User is not authenticated. Cannot update content.");
-        return;
+      console.error("User is not authenticated. Cannot update content.");
+      return;
     }
 
     const { error } = await supabase
       .from('posts')
       .update({
-        ...updatedContent,
-        // Only allow authors to update their own posts
-        author_id: user.id
+        title: updatedContent.title,
+        excerpt: updatedContent.excerpt,
+        content: updatedContent.content,
+        author: updatedContent.author,
+        date: updatedContent.date,
+        category: updatedContent.category,
+        tags: updatedContent.tags,
+        image: updatedContent.image,
+        read_time: updatedContent.readTime, // Corrected from readTime to read_time
+        published: updatedContent.published,
+        content_type: updatedContent.contentType, // Corrected from contentType to content_type
       })
-      .eq('id', id);
+      .eq('id', id)
+      .eq('author_id', user.id); // Ensures RLS is enforced
 
     if (error) {
       console.error("Error updating content:", error);
@@ -113,12 +134,13 @@ export const BlogProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const deleteContent = async (id: string) => {
+    // Check if the user is authenticated before attempting to delete content
     if (!user) {
-        console.error("User is not authenticated. Cannot delete content.");
-        return;
+      console.error("User is not authenticated. Cannot delete content.");
+      return;
     }
     
-    // ✅ Updated to use RLS and only allow the author to delete
+    // This will only delete if the authenticated user is the author
     const { error } = await supabase.from('posts').delete().eq('id', id).eq('author_id', user.id);
     if (error) {
       console.error("Error deleting content:", error);
@@ -139,6 +161,7 @@ export const BlogProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     </BlogContext.Provider>
   );
 };
+
 export const useBlog = () => {
   const context = useContext(BlogContext);
   if (!context) {
