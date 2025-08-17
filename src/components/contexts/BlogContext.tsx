@@ -1,11 +1,11 @@
 // src/components/contexts/BlogContext.tsx
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../../supabaseClient'; // your Supabase client
 import { BlogPost } from '../../types/blog';
-import { supabase } from '../../supabaseClient'; // ✅ make sure this exists
 
-// Supabase row type (snake_case)
-interface SupabasePostRow {
+// Supabase row type
+export interface SupabasePostRow {
   id: number;
   title: string;
   excerpt: string;
@@ -36,19 +36,31 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [updates, setUpdates] = useState<BlogPost[]>([]);
 
-  // Load posts from Supabase
   useEffect(() => {
     const loadPosts = async () => {
-      const { data, error } = await supabase.from('posts').select('*');
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*');
+
       if (error) {
-        console.error('❌ Supabase fetch error:', error);
+        console.error(error);
         return;
       }
+
       if (data) {
-        const formatted = (data as SupabasePostRow[]).map((item) => ({
-          ...item,
+        // Explicitly casting the fetched data to the correct type
+        const formatted: BlogPost[] = (data as SupabasePostRow[]).map((item) => ({
           id: item.id.toString(),
+          title: item.title,
+          excerpt: item.excerpt,
+          content: item.content,
+          author: item.author,
+          date: item.date,
+          category: item.category,
+          tags: item.tags,
+          image: item.image,
           readTime: item.read_time,
+          published: item.published,
           contentType: item.content_type,
         }));
 
@@ -60,61 +72,51 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadPosts();
   }, []);
 
-  // Save new content
   const addContent = async (content: Omit<BlogPost, 'id'>) => {
-    try {
-      const { data, error } = await supabase
-        .from('posts')
-        .insert([
-          {
-            title: content.title,
-            excerpt: content.excerpt,
-            content: content.content,
-            author: content.author,
-            date: content.date,
-            category: content.category,
-            tags: content.tags,
-            image: content.image,
-            read_time: content.readTime,
-            published: content.published,
-            content_type: content.contentType,
-          },
-        ])
-        .select()
-        .single();
+    const { data, error } = await supabase
+      .from('posts')
+      .insert([
+        {
+          title: content.title,
+          excerpt: content.excerpt,
+          content: content.content,
+          author: content.author,
+          date: content.date,
+          category: content.category,
+          tags: content.tags,
+          image: content.image,
+          read_time: content.readTime,
+          published: content.published,
+          content_type: content.contentType,
+        },
+      ])
+      .select()
+      .single();
 
-      if (error) {
-        console.error('❌ Supabase insert error:', error);
-        return;
-      }
+    if (error || !data) {
+      console.error('Insert error:', error);
+      return;
+    }
 
-      const newContent: BlogPost = {
-        ...data,
-        id: data.id.toString(),
-        readTime: data.read_time,
-        contentType: data.content_type,
-      };
+    const newContent: BlogPost = {
+      id: (data as SupabasePostRow).id.toString(),
+      title: (data as SupabasePostRow).title,
+      excerpt: (data as SupabasePostRow).excerpt,
+      content: (data as SupabasePostRow).content,
+      author: (data as SupabasePostRow).author,
+      date: (data as SupabasePostRow).date,
+      category: (data as SupabasePostRow).category,
+      tags: (data as SupabasePostRow).tags,
+      image: (data as SupabasePostRow).image,
+      readTime: (data as SupabasePostRow).read_time,
+      published: (data as SupabasePostRow).published,
+      contentType: (data as SupabasePostRow).content_type,
+    };
 
-      if (newContent.contentType === 'post') {
-        setPosts((prev) => [newContent, ...prev]);
-
-        // 🔔 Notify subscribers
-        if (newContent.published) {
-          fetch('/api/notify-subscribers', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              title: newContent.title,
-              excerpt: newContent.excerpt,
-              link: `${window.location.origin}/blog/${newContent.id}`,
-            }),
-          }).catch((err) => console.error('Notification error:', err));
-        }
-      } else {
-        setUpdates((prev) => [newContent, ...prev]);
-      }
-    } catch (err) {
-      console.error('❌ addContent failed:', err);
+    if (newContent.contentType === 'post') {
+      setPosts((prev) => [newContent, ...prev]);
+    } else {
+      setUpdates((prev) => [newContent, ...prev]);
     }
   };
 
@@ -132,23 +134,17 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return [...posts, ...updates].find((c) => c.id === id);
   };
 
-  const value: BlogContextType = {
-    posts,
-    updates,
-    addContent,
-    updateContent,
-    deleteContent,
-    getContent,
-  };
-
-  return <BlogContext.Provider value={value}>{children}</BlogContext.Provider>;
+  return (
+    <BlogContext.Provider
+      value={{ posts, updates, addContent, updateContent, deleteContent, getContent }}
+    >
+      {children}
+    </BlogContext.Provider>
+  );
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useBlog = () => {
   const context = useContext(BlogContext);
-  if (context === undefined) {
-    throw new Error('useBlog must be used within a BlogProvider');
-  }
+  if (!context) throw new Error('useBlog must be used within a BlogProvider');
   return context;
 };
