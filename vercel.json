@@ -33,11 +33,7 @@
       "runtime": "nodejs18.x"
     },
     "api/subscribe.js": {
-      "includeFiles": [
-        "backend/package.json",
-        "backend/package-lock.json",
-        "backend/node_modules/**"
-      ]
+      "includeFiles": "backend/**"
     }
   }
 }
