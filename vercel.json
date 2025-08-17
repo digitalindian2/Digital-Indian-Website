@@ -31,9 +31,6 @@
   "functions": {
     "api/**/*.js": {
       "runtime": "@vercel/node@18.20.3"
-    },
-    "api/subscribe.js": {
-      "includeFiles": "backend/**"
     }
   }
 }
