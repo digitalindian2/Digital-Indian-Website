@@ -38,13 +38,15 @@ const AdminDashboard: React.FC = () => {
     drafts: allContent.filter(p => !p.published).length,
   };
 
-  const handleTogglePublish = (contentId: string, currentStatus: boolean) => {
-    updateContent(contentId, { published: !currentStatus });
+  // ✅ CORRECTED: Made function async to await the database update
+  const handleTogglePublish = async (contentId: string, currentStatus: boolean) => {
+    await updateContent(contentId, { published: !currentStatus });
   };
 
-  const handleDelete = (contentId: string) => {
+  // ✅ CORRECTED: Made function async to await the database deletion
+  const handleDelete = async (contentId: string) => {
     if (window.confirm('Are you sure you want to delete this content?')) {
-      deleteContent(contentId);
+      await deleteContent(contentId);
     }
   };
 
