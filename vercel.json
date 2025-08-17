@@ -30,7 +30,7 @@
   ],
   "functions": {
     "api/**/*.js": {
-      "runtime": "@vercel/node@18.20.3"
+      "runtime": "@vercel/node@18"
     }
   }
 }
