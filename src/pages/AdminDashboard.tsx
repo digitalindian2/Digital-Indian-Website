@@ -57,6 +57,7 @@ const AdminDashboard: React.FC = () => {
             Admin Dashboard
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
+            {/* ✅ CORRECTED: Changed user?.username to user?.email */}
             Welcome back, {user?.email}! Manage your blog posts and company updates.
           </p>
         </div>
