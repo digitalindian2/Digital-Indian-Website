@@ -54,7 +54,11 @@ const Contact = () => {
         const fetchToken = async () => {
             setStatus('token_loading');
             try {
-                const response = await fetch('/api/token');
+                // Ensure the fetch call is configured correctly
+                const response = await fetch('/api/token', {
+                    method: 'GET' // Explicitly use the GET method
+                });
+                
                 if (!response.ok) {
                     throw new Error('Failed to fetch session token');
                 }
