@@ -25,7 +25,7 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      // ✅ CORRECTED: Passed credentials as a single object
+      // CORRECTED: Passed credentials as a single object
       const { success, error: loginError } = await login({ email, password });
       if (success) {
         navigate('/admin');
