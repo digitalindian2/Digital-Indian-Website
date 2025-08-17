@@ -5,12 +5,26 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { Calendar, User, ArrowRight, Tag } from 'lucide-react';
 
+// Define the type for a blog post
+interface BlogPostType {
+  id: string;
+  published: boolean;
+  image: string;
+  title: string;
+  author: string;
+  date: string;
+  readTime: string;
+  excerpt: string;
+  tags: string[];
+  category: string;
+}
+
 const Blog = () => {
   const { posts, updates } = useBlog();
   
-  // Only show published posts and updates
-  const publishedPosts = posts.filter(post => post.published);
-  const publishedUpdates = updates.filter(update => update.published);
+  // Filter for published posts and updates
+  const publishedPosts: BlogPostType[] = posts.filter((post: BlogPostType) => post.published);
+  const publishedUpdates: BlogPostType[] = updates.filter((update: BlogPostType) => update.published);
 
   const categories = [
     'All Posts',
@@ -29,7 +43,7 @@ const Blog = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Handle the subscription form submission
-  const handleSubscribe = async (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setIsSubmitting(true);
       setMessage('');
@@ -60,7 +74,7 @@ const Blog = () => {
 
   const filteredPosts = selectedCategory === 'All Posts' 
     ? publishedPosts 
-    : publishedPosts.filter(post => post.category === selectedCategory);
+    : publishedPosts.filter((post: BlogPostType) => post.category === selectedCategory);
 
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-200 transition-colors duration-500">
@@ -105,7 +119,7 @@ const Blog = () => {
       <section className="py-16 bg-gray-50 dark:bg-gray-800 transition-colors duration-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredPosts.map((post) => (
+            {filteredPosts.map((post: BlogPostType) => (
               <article key={post.id} className="bg-white dark:bg-gray-900 rounded-lg shadow-md overflow-hidden hover:shadow-xl dark:hover:shadow-lg transition-shadow group">
                 <div className="relative overflow-hidden">
                   <img
@@ -143,7 +157,7 @@ const Blog = () => {
                     <div className="flex items-center space-x-2">
                       <Tag className="h-4 w-4 text-gray-400" />
                       <div className="flex flex-wrap gap-1">
-                        {post.tags.slice(0, 2).map((tag) => (
+                        {post.tags.slice(0, 2).map((tag: string) => (
                           <span key={tag} className="text-xs text-blue-600 dark:text-blue-200 bg-blue-50 dark:bg-blue-800 px-2 py-1 rounded">
                             {tag}
                           </span>
@@ -228,7 +242,7 @@ const Blog = () => {
 
           <div className="space-y-6">
             {publishedUpdates.length > 0 ? (
-              publishedUpdates.map((update, index) => (
+              publishedUpdates.map((update: BlogPostType, index: number) => (
                 <div key={index} className="border-l-4 border-blue-600 dark:border-blue-400 pl-6 py-4">
                   <div className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-1">
                     {new Date(update.date).toLocaleDateString()}
