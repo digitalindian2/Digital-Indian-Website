@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useBlog } from '../components/contexts/BlogContext';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
 import { Calendar, User, ArrowRight, Tag } from 'lucide-react';
 
 // Define the type for a blog post
@@ -43,7 +41,7 @@ const Blog = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Handle the subscription form submission
-  const handleSubscribe = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
       e.preventDefault();
       setIsSubmitting(true);
       setMessage('');
@@ -78,7 +76,6 @@ const Blog = () => {
 
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-200 transition-colors duration-500">
-      <Header />
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-900 to-blue-700 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -170,7 +167,7 @@ const Blog = () => {
                       className="mt-2 text-blue-600 dark:text-blue-400 font-medium hover:text-blue-800 dark:hover:text-blue-500 transition-colors flex items-center w-fit"
                     >
                       Read More
-                      <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                      <ArrowRight className="ml-1 h-4 w-4" />
                     </Link>
                   </div>
                 </div>
@@ -290,7 +287,6 @@ const Blog = () => {
           </Link>
         </div>
       </section>
-      <Footer />
     </div>
   );
 };
