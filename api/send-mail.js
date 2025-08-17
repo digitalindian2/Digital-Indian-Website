@@ -19,7 +19,7 @@ const parseForm = (req) =>
     const fields = {};
     const files = {};
 
-    bb.on('file', (fieldname, file, info) => { // ✅ CORRECTED: Use 'info' object from busboy for filename
+    bb.on('file', (fieldname, file, info) => {
       const { filename, encoding, mimetype } = info;
       const buffers = [];
       file.on('data', (data) => buffers.push(data));
@@ -75,17 +75,34 @@ const handler = async (req, res) => {
       auth: { user: userEmail, pass: userPassword },
     });
 
-    const mailOptions = {
-      from: email,
-      to: userEmail,
-      subject: `Contact Form Submission from ${name}`,
-      html: `
+    // Professional-looking email HTML
+    const mailHtml = `
+      <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 8px;">
+        <h2 style="text-align: center; color: #004aad;">New Contact Form Submission</h2>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
         <p><strong>Name:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Company:</strong> ${company || 'N/A'}</p>
         <p><strong>Phone:</strong> ${phone || 'N/A'}</p>
-        <p><strong>Message:</strong> ${message}</p>
-      `,
+        <p><strong>Message:</strong></p>
+        <p style="background: #f9f9f9; padding: 10px; border-radius: 4px;">${message}</p>
+        ${
+          document
+            ? `<p><strong>Attachment:</strong> ${document.filename}</p>`
+            : ''
+        }
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+        <p style="font-size: 12px; color: #888; text-align: center;">
+          This email was sent from your website's contact form.
+        </p>
+      </div>
+    `;
+
+    const mailOptions = {
+      from: email,
+      to: userEmail,
+      subject: `Contact Form Submission from ${name}`,
+      html: mailHtml,
       attachments: document
         ? [
             {
@@ -104,7 +121,6 @@ const handler = async (req, res) => {
   } catch (err) {
     console.error('API Handler Error:', err);
 
-    // ALWAYS respond with JSON
     res.setHeader('Content-Type', 'application/json');
     return res.status(500).json({
       error: err.message || 'Internal Server Error',
