@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../../supabaseClient';
 import { BlogPost } from '../../types/blog';
-import { useAuth } from './AuthContext'; // Added to get the user's ID
+import { useAuth } from './AuthContext';
 
 // This interface should match the columns in your Supabase 'posts' table
 export interface SupabasePostRow {
@@ -11,7 +11,7 @@ export interface SupabasePostRow {
   excerpt: string;
   content: string;
   author: string;
-  author_id: string; // Crucial for RLS, should be of type string to match user.id
+  author_id: string;
   date: string;
   category: string;
   tags: string[];
@@ -37,7 +37,6 @@ export const BlogProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [updates, setUpdates] = useState<BlogPost[]>([]);
   const { user } = useAuth();
 
-  // Function to fetch and format data from Supabase
   const loadContent = async () => {
     const { data, error } = await supabase.from('posts').select('*').order('date', { ascending: false });
     if (error) {
@@ -70,15 +69,15 @@ export const BlogProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     loadContent();
   }, []);
 
+  // ✅ CORRECTED: This function now calls the notification API
   const addContent = async (contentData: Omit<BlogPost, 'id'>) => {
-    // Check if the user is authenticated before attempting to add content
     if (!user) {
-      console.error("User is not authenticated. Cannot add content.");
-      return;
+        console.error("User is not authenticated. Cannot add content.");
+        return;
     }
     
     // The keys sent to Supabase must be in snake_case to match the table schema
-    const { error } = await supabase.from('posts').insert([
+    const { data, error } = await supabase.from('posts').insert([
       {
         title: contentData.title,
         excerpt: contentData.excerpt,
@@ -93,16 +92,34 @@ export const BlogProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         content_type: contentData.contentType, // Corrected from contentType to content_type
         author_id: user.id, // Pass the user's ID for RLS
       },
-    ]);
+    ]).select().single();
+
     if (error) {
-      console.error("Error adding content:", error);
+        console.error("Error adding content:", error);
     } else {
-      await loadContent(); // Refresh local state from DB
+        // ✅ AFTER successful database insertion, call the notification API
+        try {
+            await fetch('/api/notify-subscribers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: data.title,
+                    excerpt: data.excerpt,
+                    link: `${window.location.origin}/blog/${data.id}`,
+                }),
+            });
+            console.log('✅ Notification API called successfully.');
+        } catch (notificationError) {
+            console.error('❌ Error calling notification API:', notificationError);
+        }
+
+        await loadContent(); // Refresh local state from DB
     }
-  };
+};
 
   const updateContent = async (id: string, updatedContent: Partial<BlogPost>) => {
-    // Check if the user is authenticated before attempting to update content
     if (!user) {
       console.error("User is not authenticated. Cannot update content.");
       return;
@@ -134,13 +151,11 @@ export const BlogProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const deleteContent = async (id: string) => {
-    // Check if the user is authenticated before attempting to delete content
     if (!user) {
       console.error("User is not authenticated. Cannot delete content.");
       return;
     }
     
-    // This will only delete if the authenticated user is the author
     const { error } = await supabase.from('posts').delete().eq('id', id).eq('author_id', user.id);
     if (error) {
       console.error("Error deleting content:", error);
