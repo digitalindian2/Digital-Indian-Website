@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 import { BlogPost } from '../../types/blog';
 
+// Supabase row type
 export interface SupabasePostRow {
   id: number;
   title: string;
@@ -19,6 +20,7 @@ export interface SupabasePostRow {
   content_type: 'post' | 'update';
 }
 
+// Context type
 interface BlogContextType {
   posts: BlogPost[];
   updates: BlogPost[];
@@ -64,16 +66,8 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const addContent = async (content: Omit<BlogPost, 'id'>) => {
-    // Ensure user is logged in
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      console.error('No authenticated user found');
-      return;
-    }
+    const user = supabase.auth.getUser ? (await supabase.auth.getUser()).data.user : null;
+    if (!user) return console.error('No authenticated user found');
 
     const { data, error } = await supabase
       .from('posts')
@@ -82,7 +76,7 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
           title: content.title,
           excerpt: content.excerpt,
           content: content.content,
-          author: user.id, // use logged-in user's UID
+          author: user.id, // automatically use auth.uid()
           date: content.date,
           category: content.category,
           tags: content.tags,
@@ -95,10 +89,7 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .select()
       .single();
 
-    if (error || !data) {
-      console.error('Insert failed:', error);
-      return;
-    }
+    if (error || !data) return console.error('Insert error:', error);
 
     const newContent: BlogPost = {
       id: (data as SupabasePostRow).id.toString(),
@@ -115,11 +106,8 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
       contentType: (data as SupabasePostRow).content_type,
     };
 
-    if (newContent.contentType === 'post') {
-      setPosts((prev) => [newContent, ...prev]);
-    } else {
-      setUpdates((prev) => [newContent, ...prev]);
-    }
+    if (newContent.contentType === 'post') setPosts((prev) => [newContent, ...prev]);
+    else setUpdates((prev) => [newContent, ...prev]);
   };
 
   const updateContent = (id: string, updatedContent: Partial<BlogPost>) => {
