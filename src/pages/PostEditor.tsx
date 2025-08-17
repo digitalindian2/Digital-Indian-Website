@@ -71,7 +71,8 @@ const PostEditor: React.FC = () => {
     'Industry News'
   ];
 
-  const handleSubmit = (e: React.FormEvent, publish = false) => {
+  // ✅ CORRECTED: Made the function async
+  const handleSubmit = async (e: React.FormEvent, publish = false) => {
     e.preventDefault();
     
     const tagsArray = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag);
@@ -84,10 +85,10 @@ const PostEditor: React.FC = () => {
     };
 
     if (isEditing && existingContent) {
-      updateContent(existingContent.id, contentData);
+      await updateContent(existingContent.id, contentData); // ✅ CORRECTED: Added await
       setSuccessMessage('Content updated successfully!');
     } else {
-      addContent(contentData);
+      await addContent(contentData); // ✅ CORRECTED: Added await
       setSuccessMessage('New content created successfully!');
     }
 
