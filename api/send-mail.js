@@ -21,15 +21,13 @@ const parseForm = (req) => {
 
     bb.on('file', (fieldname, file, filename, encoding, mimetype) => {
       const buffers = [];
-      file.on('data', (data) => {
-        buffers.push(data);
-      });
+      file.on('data', (data) => buffers.push(data));
       file.on('end', () => {
         if (buffers.length > 0) {
           files[fieldname] = {
-            filename: filename.filename,
+            filename: filename, // ✅ fix: use filename directly
             content: Buffer.concat(buffers),
-            contentType: mimetype
+            contentType: mimetype,
           };
         }
       });
@@ -39,90 +37,77 @@ const parseForm = (req) => {
       fields[fieldname] = val;
     });
 
-    bb.on('finish', () => {
-      resolve({ fields, files });
-    });
-
-    bb.on('error', (err) => {
-      console.error('Busboy error:', err);
-      reject(err);
-    });
+    bb.on('finish', () => resolve({ fields, files }));
+    bb.on('error', (err) => reject(err));
 
     req.pipe(bb);
   });
 };
 
 const handler = async (req, res) => {
-  // Set CORS headers
+  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  // Handle preflight requests
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
-  // Handle the POST request for form submission
-  if (req.method === 'POST') {
-    try {
-      // Use await to handle potential rejection from parseForm
-      const { fields, files } = await parseForm(req);
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
 
-      // Extract form data, handling busboy's object format
-      const name = fields.name;
-      const email = fields.email;
-      const company = fields.company;
-      const phone = fields.phone;
-      const message = fields.message;
-      const document = files.document;
+  try {
+    const { fields, files } = await parseForm(req);
 
-      if (!name || !email || !message) {
-        return res.status(400).json({ error: 'Missing required form fields.' });
-      }
+    const { name, email, company, phone, message } = fields;
+    const document = files.document;
 
-      // Check if environment variables are set before creating transporter
-      if (!process.env.NODEMAILER_EMAIL || !process.env.NODEMAILER_PASSWORD) {
-        throw new Error('Nodemailer environment variables are not configured.');
-      }
-      
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: process.env.NODEMAILER_EMAIL,
-          pass: process.env.NODEMAILER_PASSWORD,
-        },
-      });
-
-      const mailOptions = {
-        from: email,
-        to: process.env.NODEMAILER_EMAIL,
-        subject: `New Contact Form Submission from ${name}`,
-        html: `
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Company:</strong> ${company || 'N/A'}</p>
-          <p><strong>Phone:</strong> ${phone || 'N/A'}</p>
-          <p><strong>Message:</strong> ${message}</p>
-        `,
-        attachments: document ? [{
-          filename: document.filename,
-          content: document.content,
-          contentType: document.contentType,
-        }] : [],
-      };
-
-      await transporter.sendMail(mailOptions);
-      res.status(200).json({ message: 'Email sent successfully!' });
-      
-    } catch (error) {
-      console.error('Final error in handler:', error);
-      // Ensure a JSON response is always sent in case of an error
-      res.status(500).json({ error: error.message || 'Internal Server Error' });
+    if (!name || !email || !message) {
+      return res.status(400).json({ error: 'Missing required form fields.' });
     }
-  } else {
-    res.status(405).json({ error: 'Method Not Allowed' });
+
+    if (!process.env.NODEMAILER_EMAIL || !process.env.NODEMAILER_PASSWORD) {
+      throw new Error('Nodemailer environment variables are not configured.');
+    }
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.NODEMAILER_EMAIL,
+        pass: process.env.NODEMAILER_PASSWORD,
+      },
+    });
+
+    const mailOptions = {
+      from: email,
+      to: process.env.NODEMAILER_EMAIL,
+      subject: `New Contact Form Submission from ${name}`,
+      html: `
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Company:</strong> ${company || 'N/A'}</p>
+        <p><strong>Phone:</strong> ${phone || 'N/A'}</p>
+        <p><strong>Message:</strong> ${message}</p>
+      `,
+      attachments: document
+        ? [
+            {
+              filename: document.filename,
+              content: document.content,
+              contentType: document.contentType,
+            },
+          ]
+        : [],
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({ message: 'Email sent successfully!' });
+  } catch (error) {
+    console.error('Final error in handler:', error);
+    return res.status(500).json({ error: error.message || 'Internal Server Error' });
   }
 };
 
