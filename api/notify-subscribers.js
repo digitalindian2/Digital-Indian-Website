@@ -1,17 +1,28 @@
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
 
+// Load environment variables locally in development
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({ path: '.env.local' });
+}
+
+// Supabase client
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
+
+export const config = {
+  api: { bodyParser: true }, // We can parse JSON body here
+};
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { title, excerpt, link } = req.body;
+  const { title, excerpt, link, featuredImage } = req.body;
 
   if (!title || !excerpt || !link) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -32,10 +43,10 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: 'No subscribers found' });
     }
 
-    // 2️⃣ Setup Nodemailer transporter (using your SMTP config)
+    // 2️⃣ Setup Nodemailer transporter
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
-      port: process.env.SMTP_PORT,
+      port: Number(process.env.SMTP_PORT),
       secure: process.env.SMTP_SECURE === 'true',
       auth: {
         user: process.env.SMTP_USER,
@@ -50,9 +61,80 @@ export default async function handler(req, res) {
         to: subscriber.email,
         subject: `📢 New Blog Post: ${title}`,
         html: `
-          <h2>${title}</h2>
-          <p>${excerpt}</p>
-          <p><a href="${link}" target="_blank">👉 Read full post here</a></p>
+          <html>
+          <head>
+            <style>
+              @media (prefers-color-scheme: dark) {
+                body, .email-container { background-color: #121212 !important; color: #e0e0e0 !important; }
+                .header { background-color: #1a73e8 !important; color: #fff !important; }
+                .content h2 { color: #4fc3f7 !important; }
+                .content p { color: #ccc !important; }
+                .footer { background-color: #1c1c1c !important; color: #999 !important; }
+                a.button { background: linear-gradient(90deg, #4fc3f7, #1a73e8) !important; color: white !important; }
+                a.social { filter: brightness(0.8) !important; }
+              }
+              @media only screen and (max-width: 600px) {
+                .email-container { width: 100% !important; }
+                img { width: 100% !important; height: auto !important; }
+              }
+            </style>
+          </head>
+          <body style="margin:0; padding:0; background-color:#ffffff; color:#333;">
+            <div class="email-container" style="font-family:'Helvetica Neue', Arial, sans-serif; max-width:600px; margin:auto; border:1px solid #ddd; border-radius:10px; overflow:hidden;">
+
+              <!-- Header -->
+              <div class="header" style="background-color:#1d72b8; padding:30px; text-align:center; color:white;">
+                <h1 style="margin:0; font-size:28px;">Digital Indian</h1>
+                <p style="margin:5px 0 0; font-size:14px;">Your weekly dose of tech & insights</p>
+              </div>
+
+              <!-- Featured Image -->
+              <div style="text-align:center;">
+                <img src="${featuredImage || 'https://via.placeholder.com/600x200.png?text=New+Blog+Post'}" 
+                     alt="Blog Banner" 
+                     style="width:100%; max-width:600px; display:block;" />
+              </div>
+
+              <!-- Content -->
+              <div class="content" style="padding:25px;">
+                <h2 style="color:#1d72b8; font-size:22px; margin-bottom:15px;">${title}</h2>
+                <p style="font-size:16px; color:#555; margin-bottom:25px;">${excerpt}</p>
+                <p style="text-align:center; margin:30px 0;">
+                  <a href="${link}" target="_blank" class="button" 
+                     style="background:linear-gradient(90deg, #1d72b8, #4a90e2); color:white; padding:15px 25px; text-decoration:none; border-radius:50px; font-weight:bold; display:inline-block;">
+                    Read Full Post
+                  </a>
+                </p>
+              </div>
+
+              <!-- Social Media -->
+              <div style="text-align:center; padding:15px;">
+                <a href="https://facebook.com" target="_blank" class="social" style="margin:0 5px;">
+                  <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/facebook.svg" width="24" height="24" style="vertical-align:middle;">
+                </a>
+                <a href="https://twitter.com" target="_blank" class="social" style="margin:0 5px;">
+                  <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/twitter.svg" width="24" height="24" style="vertical-align:middle;">
+                </a>
+                <a href="https://instagram.com" target="_blank" class="social" style="margin:0 5px;">
+                  <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/instagram.svg" width="24" height="24" style="vertical-align:middle;">
+                </a>
+                <a href="https://linkedin.com" target="_blank" class="social" style="margin:0 5px;">
+                  <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/linkedin.svg" width="24" height="24" style="vertical-align:middle;">
+                </a>
+              </div>
+
+              <!-- Footer -->
+              <div class="footer" style="background-color:#f4f4f4; padding:15px; text-align:center; font-size:12px; color:#999;">
+                <p style="margin:0;">You are receiving this email because you subscribed to Digital Indian blog updates.</p>
+                <p style="margin:5px 0 0;">&copy; ${new Date().getFullYear()} Digital Indian. All rights reserved.</p>
+                <p style="margin:5px 0 0;">
+                  <a href="https://yourdomain.com/unsubscribe" target="_blank" style="color:#1d72b8; text-decoration:none;">Unsubscribe</a>
+                </p>
+              </div>
+
+            </div>
+          </body>
+          </html>
         `,
       })
     );
