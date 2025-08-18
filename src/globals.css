@@ -1,4 +1,6 @@
 /* src/globals.css */
+
+/* === Chatbot Animations === */
 @keyframes fadeSlide {
   0% { opacity: 0; transform: translateY(10px); }
   100% { opacity: 1; transform: translateY(0); }
@@ -24,3 +26,46 @@
 }
 .animation-delay-150 { animation-delay: 0.15s; }
 .animation-delay-300 { animation-delay: 0.3s; }
+
+/* === Chatbot Input & Buttons === */
+input:focus {
+  outline: none;
+  ring-width: 2px;
+  ring-color: #3b82f6; /* blue-500 */
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* === Dark mode support for chatbot === */
+body.dark input,
+body.dark textarea {
+  background-color: #1f2937; /* gray-800 */
+  color: #f9fafb; /* gray-50 */
+}
+
+body.dark .dot {
+  background-color: #d1d5db; /* gray-300 */
+}
+
+body.dark .bg-gray-100 {
+  background-color: #374151; /* gray-700 */
+}
+
+body.dark .bg-gray-200 {
+  background-color: #4b5563; /* gray-600 */
+}
+
+/* === Smooth scroll for messages === */
+html {
+  scroll-behavior: smooth;
+}
+
+/* === Optional general utility === */
+.rounded-full { border-radius: 9999px; }
+.shadow-md { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.shadow-xl { box-shadow: 0 10px 15px rgba(0,0,0,0.2); }
+.transition-all { transition: all 0.2s ease-in-out; }
+.transition-colors { transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out; }

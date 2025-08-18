@@ -68,7 +68,6 @@ const Chatbot: React.FC = () => {
     }
   ]);
   const [status, setStatus] = useState<'idle' | 'submitting'>('idle');
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -76,32 +75,24 @@ const Chatbot: React.FC = () => {
   }, [messages]);
 
   const handleSendMessage = useCallback(async (text: string) => {
-    const messageToSend = text.trim();
-    if (!messageToSend || status === 'submitting') return;
+    if (!text.trim() || status === 'submitting') return;
 
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const userMessage: Message = { text: messageToSend, sender: 'user', timestamp: now };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages(prev => [...prev, { text, sender: 'user', timestamp: now }]);
     setStatus('submitting');
 
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: messageToSend })
+        body: JSON.stringify({ message: text })
       });
 
       const data = await response.json();
-      const botResponse: Message = { text: data.reply, sender: 'bot', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-      setMessages(prev => [...prev, botResponse]);
+      setMessages(prev => [...prev, { text: data.reply, sender: 'bot', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
     } catch (error) {
       console.error("Chatbot API error:", error);
-      const botResponse: Message = {
-        text: "Sorry, I'm having trouble connecting right now. Please try again later.",
-        sender: 'bot',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages(prev => [...prev, botResponse]);
+      setMessages(prev => [...prev, { text: "Sorry, I'm having trouble connecting right now. Please try again later.", sender: 'bot', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
     } finally {
       setStatus('idle');
     }
@@ -125,11 +116,7 @@ const Chatbot: React.FC = () => {
           <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-blue-600 font-bold">DI</div>
           <h3 className="font-semibold text-lg">Digital Indian Assistant</h3>
         </div>
-        <button
-          onClick={() => setIsOpen(false)}
-          className="p-1 rounded-full hover:bg-blue-700 transition-colors"
-          aria-label="Close chat"
-        >
+        <button onClick={() => setIsOpen(false)} className="p-1 rounded-full hover:bg-blue-700 transition-colors" aria-label="Close chat">
           <X className="h-5 w-5" />
         </button>
       </div>
@@ -140,33 +127,25 @@ const Chatbot: React.FC = () => {
           msg.type === 'faq_suggestions' ? (
             <div key={index} className="flex justify-start">
               <div className="max-w-[80%] p-3 rounded-xl shadow-md bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-none space-y-2 animate-fadeIn">
-                {msg.suggestions?.map((suggestion, suggestionIndex) => (
-                  <button
-                    key={suggestionIndex}
-                    onClick={() => handleSendMessage(suggestion)}
-                    className="inline-block px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-700 hover:bg-blue-200 dark:hover:bg-blue-600 transition-colors text-sm"
-                    disabled={status === 'submitting'}
-                  >
-                    {suggestion}
+                {msg.suggestions?.map((sugg, i) => (
+                  <button key={i} onClick={() => handleSendMessage(sugg)} className="inline-block px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-700 hover:bg-blue-200 dark:hover:bg-blue-600 transition-colors text-sm" disabled={status==='submitting'}>
+                    {sugg}
                   </button>
                 ))}
               </div>
             </div>
           ) : (
             <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fadeSlide`}>
-              <div className={`max-w-[70%] p-3 rounded-xl shadow-md 
-                ${msg.sender === 'user'
-                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-br-none'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-none'
-                }`}>
+              <div className={`max-w-[70%] p-3 rounded-xl shadow-md ${msg.sender==='user' ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-br-none' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-none'}`}>
                 {msg.text}
                 <div className="text-xs text-gray-400 mt-1">{msg.timestamp}</div>
               </div>
             </div>
           )
         ))}
+
         {/* Typing indicator */}
-        {status === 'submitting' && (
+        {status==='submitting' && (
           <div className="flex justify-start">
             <div className="max-w-[60px] p-3 rounded-xl shadow-md bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-none flex items-center space-x-1">
               <span className="dot animate-bounce bg-gray-500 dark:bg-gray-300"></span>
@@ -175,19 +154,16 @@ const Chatbot: React.FC = () => {
             </div>
           </div>
         )}
+
         <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}
-      <ChatInput onSendMessage={handleSendMessage} isSubmitting={status === 'submitting'} />
+      <ChatInput onSendMessage={handleSendMessage} isSubmitting={status==='submitting'} />
     </div>
   );
 
-  return (
-    <>
-      {isOpen ? <ChatWindow /> : <ChatbotButton />}
-    </>
-  );
+  return <>{isOpen ? <ChatWindow /> : <ChatbotButton />}</>;
 };
 
 export default Chatbot;
