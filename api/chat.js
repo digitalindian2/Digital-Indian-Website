@@ -50,7 +50,7 @@ export default async function handler(req, res) {
     };
 
     const { data } = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, // ✅ CORRECTED: Using a more stable model
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
       payload,
       { headers: { "Content-Type": "application/json" } }
     );
