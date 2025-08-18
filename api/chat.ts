@@ -61,8 +61,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } else {
       res.status(500).json({ reply: "Invalid AI response" });
     }
-  } catch (error: unknown) { // ✅ CORRECTED: Type changed from 'any' to 'unknown'
-    console.error("Gemini API error:", error instanceof Error ? error.message : error);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error("Gemini API error:", error.message);
     res.status(500).json({ reply: "Error processing request" });
   }
 }
