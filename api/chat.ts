@@ -1,28 +1,19 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import type { NextApiRequest, NextApiResponse } from "next";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
+import { VercelRequest, VercelResponse } from '@vercel/node';
 
-type Data = { reply: string };
-
-const faqResponses: Record<string, string> = {
-  "what services do you offer?":
-    "We offer Telecom Infrastructure, Geospatial & GIS Solutions, Skill Development, and Consultancy & Business Incubation.",
-  "what are your business hours?":
-    "Our business hours are Monday - Sunday, from 9:00 AM to 8:00 PM.",
-  "how do i contact support?":
-    "You can contact our support team via email at info@digitalindian.co.in or by calling +917908735132.",
-  "how can i book a meeting?":
-    "You can book a meeting by using the 'Send Us a Message' option on our contact page.",
+const faqResponses: { [key: string]: string } = {
+  "what services do you offer?": "We offer Telecom Infrastructure, Geospatial & GIS Solutions, Skill Development, and Consultancy & Business Incubation.",
+  "what are your business hours?": "Our business hours are Monday - Sunday, from 9:00 AM to 8:00 PM.",
+  "how do i contact support?": "You can contact our support team via email at info@digitalindian.co.in or by calling +917908735132.",
+  "how can i book a meeting?": "You can book a meeting by using the 'Send Us a Message' option on our contact page.",
 };
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>
-) {
-  if (req.method !== "POST") return res.status(405).json({ reply: "Method not allowed" });
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
-  const userMessage = (req.body.message as string)?.toLowerCase().trim();
-  if (!userMessage) return res.status(400).json({ reply: "No message provided" });
+  const userMessage = req.body.message?.toLowerCase().trim();
 
   // Date query
   if (userMessage.includes("date") || userMessage.includes("today")) {
@@ -37,38 +28,41 @@ export default async function handler(
   }
 
   // FAQ match
-  if (faqResponses[userMessage]) return res.status(200).json({ reply: faqResponses[userMessage] });
+  if (faqResponses[userMessage]) {
+    return res.status(200).json({ reply: faqResponses[userMessage] });
+  }
 
-  // Gemini API call
+  // Gemini API
   try {
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return res.status(500).json({ reply: "API key not configured" });
+    if (!apiKey) {
+      return res.status(500).json({ reply: "API key not configured" });
+    }
 
     const payload = {
-      prompt: `You are a friendly AI assistant for the company 'Digital Indian'. Respond concisely and professionally. User asked: "${userMessage}"`,
-      temperature: 0.2,
-      candidate_count: 1,
-      max_output_tokens: 500,
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: `You are an AI assistant for the company 'Digital Indian'. Your goal is to be friendly and helpful. If a user asks a question, provide a concise and professional response. The user asked: "${userMessage}".` },
+          ],
+        },
+      ],
     };
 
-    const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1/models/text-bison-001:generateContent?key=${apiKey}`,
+    const { data } = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
       payload,
       { headers: { "Content-Type": "application/json" } }
     );
 
-    const aiReply: string | null = response.data?.candidates?.[0]?.content || null;
-    if (aiReply) return res.status(200).json({ reply: aiReply });
-
-    return res.status(500).json({ reply: "Invalid AI response" });
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      console.error("Gemini API error:", error.response?.data || error.message);
-    } else if (error instanceof Error) {
-      console.error("Error:", error.message);
+    if (data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+      res.status(200).json({ reply: data.candidates[0].content.parts[0].text });
     } else {
-      console.error("Unexpected error:", error);
+      res.status(500).json({ reply: "Invalid AI response" });
     }
-    return res.status(500).json({ reply: "Error processing request" });
+  } catch (error: unknown) { // ✅ CORRECTED: Type changed from 'any' to 'unknown'
+    console.error("Gemini API error:", error instanceof Error ? error.message : error);
+    res.status(500).json({ reply: "Error processing request" });
   }
 }
