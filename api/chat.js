@@ -1,14 +1,13 @@
 import axios from "axios";
-import { VercelRequest, VercelResponse } from '@vercel/node';
 
-const faqResponses: { [key: string]: string } = {
+const faqResponses = {
   "what services do you offer?": "We offer Telecom Infrastructure, Geospatial & GIS Solutions, Skill Development, and Consultancy & Business Incubation.",
   "what are your business hours?": "Our business hours are Monday - Sunday, from 9:00 AM to 8:00 PM.",
-  "how do i contact support?": "You can contact our support team via email at info@digitalindian.co.in or by calling +917908735132.",
-  "how can i book a meeting?": "You can book a meeting by using the 'Send Us a Message' option on our contact page.",
+  "how do i contact support?": "You can contact our support team via email at info@digitalindian.co.in or by calling +91 7908735132.",
+  "how can i book a meeting?": "You can book a meeting by using the 'View Calendar' option on our contact page.",
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -51,7 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     };
 
     const { data } = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`,
       payload,
       { headers: { "Content-Type": "application/json" } }
     );
@@ -61,13 +60,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } else {
       res.status(500).json({ reply: "Invalid AI response" });
     }
-  }  catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-        console.error("Gemini API error:", error.message);
-        res.status(500).json({ reply: `Error from AI: ${error.message}` });
-    } else {
-        console.error("Gemini API error:", error);
-        res.status(500).json({ reply: "An unknown error occurred" });
-    }
+  } catch (error) {
+    console.error("Gemini API error:", error.message);
+    res.status(500).json({ reply: "Error processing request" });
   }
 }

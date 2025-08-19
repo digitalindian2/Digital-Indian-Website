@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { MessageCircle, Send, X } from 'lucide-react';
+import { MessageCircle, Send, X, Loader2 } from 'lucide-react';
 
 // Message interface
 interface Message {
@@ -7,7 +7,6 @@ interface Message {
   sender?: 'user' | 'bot';
   type?: 'faq_suggestions';
   suggestions?: string[];
-  timestamp?: string;
 }
 
 // Props for ChatInput
@@ -29,19 +28,19 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isSubmitting }) =>
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+    <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200 dark:border-gray-700">
       <div className="flex items-center space-x-2">
         <input
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-white"
+          className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 dark:text-white"
           placeholder="Type your message..."
           disabled={isSubmitting}
         />
         <button
           type="submit"
-          className="p-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full hover:from-blue-600 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isSubmitting || !inputValue.trim()}
           aria-label="Send message"
         >
@@ -52,11 +51,87 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isSubmitting }) =>
   );
 };
 
+// small mapping for common cities -> IANA timezones
+const cityTimeZones: Record<string, string> = {
+  kolkata: 'Asia/Kolkata',
+  india: 'Asia/Kolkata',
+  mumbai: 'Asia/Kolkata',
+  delhi: 'Asia/Kolkata',
+  bangalore: 'Asia/Kolkata',
+  london: 'Europe/London',
+  'new york': 'America/New_York',
+  nyc: 'America/New_York',
+  'los angeles': 'America/Los_Angeles',
+  la: 'America/Los_Angeles',
+  chicago: 'America/Chicago',
+  tokyo: 'Asia/Tokyo',
+  sydney: 'Australia/Sydney',
+};
+
+// try to extract a timezone (IANA) or a city from the user's text
+const extractTimezoneFromMessage = (text: string): string | undefined => {
+  // check "in {place}" patterns
+  const inMatch = text.match(/in\s+([A-Za-z/_\s]+)/i);
+  if (inMatch) {
+    const place = inMatch[1].trim().toLowerCase();
+    for (const key of Object.keys(cityTimeZones)) {
+      if (place.includes(key)) return cityTimeZones[key];
+    }
+  }
+
+  // check for IANA timezone-like token (e.g., "Asia/Kolkata")
+  const ianaMatch = text.match(/\b([A-Za-z]+\/[A-Za-z_]+)\b/);
+  if (ianaMatch) {
+    return ianaMatch[1];
+  }
+
+  // common abbreviations
+  const abbrMatch = text.match(/\b(UTC|GMT|IST|PST|EST|CET|EET|BST)\b/i);
+  if (abbrMatch) {
+    const a = abbrMatch[1].toUpperCase();
+    if (a === 'IST') return 'Asia/Kolkata';
+    if (a === 'PST') return 'America/Los_Angeles';
+    if (a === 'EST') return 'America/New_York';
+    if (a === 'GMT' || a === 'UTC') return 'UTC';
+    if (a === 'CET') return 'Europe/Paris';
+    if (a === 'BST') return 'Europe/London';
+  }
+
+  return undefined;
+};
+
+// format time string (safe fallback included)
+const formatTime = (timeZone?: string): string => {
+  const now = new Date();
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  };
+
+  try {
+    if (timeZone) {
+      // may throw if the timezone string is invalid in some environments
+      return new Intl.DateTimeFormat('en-GB', { ...options, timeZone }).format(now);
+    }
+    return new Intl.DateTimeFormat('en-GB', options).format(now);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_e) {
+    // fallback to browser's locale/time
+    return now.toLocaleString();
+  }
+};
+
 // Main Chatbot Component
 const Chatbot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { text: "Hello! How can I assist you today? Here are some things I can help with:", sender: 'bot', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
+    { text: "Hello! How can I assist you today? Here are some things I can help with:", sender: 'bot' },
     {
       type: 'faq_suggestions',
       suggestions: [
@@ -68,6 +143,7 @@ const Chatbot: React.FC = () => {
     }
   ]);
   const [status, setStatus] = useState<'idle' | 'submitting'>('idle');
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -75,24 +151,68 @@ const Chatbot: React.FC = () => {
   }, [messages]);
 
   const handleSendMessage = useCallback(async (text: string) => {
-    if (!text.trim() || status === 'submitting') return;
+    const messageToSend = text.trim();
+    if (!messageToSend || status === 'submitting') return;
 
-    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setMessages(prev => [...prev, { text, sender: 'user', timestamp: now }]);
+    const userMessage: Message = { text: messageToSend, sender: 'user' };
+
+    // Time query detection & immediate reply
+    const timeQueryRegex = /\b(what(?:'s| is)? the time|what time is it|current time|time now|time in)\b/i;
+    if (timeQueryRegex.test(messageToSend)) {
+      const tz = extractTimezoneFromMessage(messageToSend);
+      const defaultTz = 'Asia/Kolkata';
+      const usedTz = tz ?? defaultTz;
+      const timeStr = formatTime(usedTz);
+      const botReply = tz
+        ? `The current time in ${usedTz.replace('_', ' ')} is ${timeStr}.`
+        : `The current time (Asia/Kolkata) is ${timeStr}.`;
+
+      const botResponse: Message = { text: botReply, sender: 'bot' };
+      setMessages(prev => [...prev, userMessage, botResponse]);
+      return;
+    }
+
+    // Normal flow: add user message and call backend
+    setMessages(prev => [...prev, userMessage]);
     setStatus('submitting');
 
     try {
+      // FIX: Use a relative path for the API endpoint. Vercel automatically handles this for you.
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text })
+        body: JSON.stringify({ message: messageToSend })
       });
 
+      if (!response.ok) {
+        // Log the error response from the server for better debugging
+        const errorText = await response.text();
+        throw new Error(`Server responded with ${response.status}: ${errorText}`);
+      }
+
       const data = await response.json();
-      setMessages(prev => [...prev, { text: data.reply, sender: 'bot', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+      const botResponse: Message = { text: data.reply, sender: 'bot' };
+      setMessages(prev => [...prev, botResponse]);
     } catch (error) {
       console.error("Chatbot API error:", error);
-      setMessages(prev => [...prev, { text: "Sorry, I'm having trouble connecting right now. Please try again later.", sender: 'bot', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+
+      // Keep the fallback logic for a better user experience on failure
+      let botReply = "Sorry, I'm having trouble connecting right now. Please try again later.";
+      const lowerMessage = messageToSend.toLowerCase();
+      if (lowerMessage.includes('service') || lowerMessage.includes('what do you offer')) {
+        botReply = "We offer web development, mobile app development, AI solutions, and digital transformation services. Would you like to know more about any specific service?";
+      } else if (lowerMessage.includes('hours') || lowerMessage.includes('time')) {
+        botReply = "Our business hours are Monday to Sunday, 9:00 AM - 8:00 PM. We're available to help you during these times!";
+      } else if (lowerMessage.includes('contact') || lowerMessage.includes('support')) {
+        botReply = "You can reach us at info@digitalindian.co.in or call us at +91 7908735132. We're here to help!";
+      } else if (lowerMessage.includes('meeting') || lowerMessage.includes('book')) {
+        botReply = "To book a meeting, please contact us directly at info@digitalindian.co.in or call +91 7908735132. We'll be happy to schedule a consultation!";
+      } else if (lowerMessage.includes('hello') || lowerMessage.includes('hi')) {
+        botReply = "Hello! I'm here to help you with any questions about our services. What would you like to know?";
+      }
+
+      const botResponse: Message = { text: botReply, sender: 'bot' };
+      setMessages(prev => [...prev, botResponse]);
     } finally {
       setStatus('idle');
     }
@@ -101,7 +221,7 @@ const Chatbot: React.FC = () => {
   const ChatbotButton: React.FC = () => (
     <button
       onClick={() => setIsOpen(!isOpen)}
-      className="fixed bottom-6 right-6 p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full shadow-lg hover:scale-105 hover:shadow-xl transition-transform z-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+      className="fixed bottom-6 right-6 p-4 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors z-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
       aria-label="Open chatbot"
     >
       <MessageCircle className="h-7 w-7" />
@@ -109,61 +229,74 @@ const Chatbot: React.FC = () => {
   );
 
   const ChatWindow: React.FC = () => (
-    <div className="fixed bottom-0 right-0 w-full sm:bottom-6 sm:right-6 sm:w-96 max-h-[70vh] sm:max-h-[80vh] flex flex-col bg-white dark:bg-gray-800 rounded-t-lg sm:rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
-      {/* Header */}
-      <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-blue-600 font-bold">DI</div>
-          <h3 className="font-semibold text-lg">Digital Indian Assistant</h3>
-        </div>
-        <button onClick={() => setIsOpen(false)} className="p-1 rounded-full hover:bg-blue-700 transition-colors" aria-label="Close chat">
+    <div className="fixed bottom-0 right-0 w-full sm:bottom-6 sm:right-6 sm:w-96 max-h-[70vh] sm:max-h-[80vh] flex flex-col bg-white dark:bg-gray-800 rounded-t-lg sm:rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50">
+      <div className="flex justify-between items-center p-4 bg-blue-600 text-white rounded-t-lg">
+        <h3 className="font-semibold text-lg">Digital Indian Assistant</h3>
+        <button
+          onClick={() => setIsOpen(false)}
+          className="p-1 rounded-full hover:bg-blue-700 transition-colors"
+          aria-label="Close chat"
+        >
           <X className="h-5 w-5" />
         </button>
       </div>
 
-      {/* Messages */}
       <div className="flex-1 p-4 overflow-y-auto space-y-4 max-h-[calc(70vh-140px)] sm:max-h-96">
         {messages.map((msg, index) => (
           msg.type === 'faq_suggestions' ? (
             <div key={index} className="flex justify-start">
-              <div className="max-w-[80%] p-3 rounded-xl shadow-md bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-none space-y-2 animate-fadeIn">
-                {msg.suggestions?.map((sugg, i) => (
-                  <button key={i} onClick={() => handleSendMessage(sugg)} className="inline-block px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-700 hover:bg-blue-200 dark:hover:bg-blue-600 transition-colors text-sm" disabled={status==='submitting'}>
-                    {sugg}
-                  </button>
-                ))}
+              <div className="max-w-[80%] p-3 rounded-xl shadow-md bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-none">
+                <div className="space-y-2">
+                  {msg.suggestions?.map((suggestion, suggestionIndex) => (
+                    <button
+                      key={suggestionIndex}
+                      onClick={() => handleSendMessage(suggestion)}
+                      className="block w-full text-left px-3 py-2 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors text-sm"
+                      disabled={status === 'submitting'}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           ) : (
-            <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fadeSlide`}>
-              <div className={`max-w-[70%] p-3 rounded-xl shadow-md ${msg.sender==='user' ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-br-none' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-none'}`}>
+            <div
+              key={index}
+              className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={`max-w-[70%] p-3 rounded-xl shadow-md ${
+                  msg.sender === 'user'
+                    ? 'bg-blue-500 text-white rounded-br-none'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-none'
+                }`}
+              >
                 {msg.text}
-                <div className="text-xs text-gray-400 mt-1">{msg.timestamp}</div>
               </div>
             </div>
           )
         ))}
-
-        {/* Typing indicator */}
-        {status==='submitting' && (
+        {status === 'submitting' && (
           <div className="flex justify-start">
-            <div className="max-w-[60px] p-3 rounded-xl shadow-md bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-none flex items-center space-x-1">
-              <span className="dot animate-bounce bg-gray-500 dark:bg-gray-300"></span>
-              <span className="dot animate-bounce animation-delay-150 bg-gray-500 dark:bg-gray-300"></span>
-              <span className="dot animate-bounce animation-delay-300 bg-gray-500 dark:bg-gray-300"></span>
+            <div className="max-w-[70%] p-3 rounded-xl shadow-md bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-none flex items-center space-x-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Thinking...</span>
             </div>
           </div>
         )}
-
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <ChatInput onSendMessage={handleSendMessage} isSubmitting={status==='submitting'} />
+      <ChatInput onSendMessage={handleSendMessage} isSubmitting={status === 'submitting'} />
     </div>
   );
 
-  return <>{isOpen ? <ChatWindow /> : <ChatbotButton />}</>;
+  return (
+    <>
+      {isOpen ? <ChatWindow /> : <ChatbotButton />}
+    </>
+  );
 };
 
 export default Chatbot;
