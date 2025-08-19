@@ -186,7 +186,7 @@ const About = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {team.map((member, index) => (
               <div key={index} className="text-center group">
                 <div className="relative mb-4 overflow-hidden rounded-lg">
@@ -203,8 +203,8 @@ const About = () => {
                 <p className="text-blue-600 font-medium mb-2">{member.role}</p>
                 <p className="text-gray-600 dark:text-gray-400 text-sm">{member.experience}</p>
               </div>
-            ))}
-          </div>
+            ))}̀
+          </div> */}
         </div>
       </section>
 
